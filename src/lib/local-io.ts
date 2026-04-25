@@ -1,10 +1,4 @@
-import {
-  resolvePath,
-  statPath,
-  listDir,
-  readFile,
-  writeFile,
-} from "./tauri";
+import { resolvePath, statPath, listDir, readFile, writeFile } from "./tauri";
 import type { LocalIO } from "@/sync/types";
 
 export const tauriLocalIO: LocalIO = {

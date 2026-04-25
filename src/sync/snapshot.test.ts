@@ -71,7 +71,9 @@ function matchesGlob(name: string, glob: string): boolean {
   if (glob === "*") return true;
   if (glob.startsWith("*")) return name.endsWith(glob.slice(1));
   if (glob.endsWith("/SKILL.md")) {
-    return name.endsWith("/SKILL.md") && !name.slice(0, -"/SKILL.md".length).includes("/");
+    return (
+      name.endsWith("/SKILL.md") && !name.slice(0, -"/SKILL.md".length).includes("/")
+    );
   }
   return name === glob;
 }

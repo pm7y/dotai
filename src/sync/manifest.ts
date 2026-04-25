@@ -39,9 +39,7 @@ export function parseManifest(json: string): SnapshotManifest {
   }
   const m = obj as Record<string, unknown>;
   if (m.schemaVersion !== 1) {
-    throw new Error(
-      `manifest: unsupported schemaVersion ${String(m.schemaVersion)}`,
-    );
+    throw new Error(`manifest: unsupported schemaVersion ${String(m.schemaVersion)}`);
   }
   return m as unknown as SnapshotManifest;
 }

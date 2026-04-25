@@ -27,7 +27,11 @@ describe("pushSnapshot", () => {
       dotaiVersion: "0.1.0",
       collected: {
         files: [
-          { remotePath: "files/cc.user.settings/settings.json", content: "{}", entryId: "cc.user.settings" },
+          {
+            remotePath: "files/cc.user.settings/settings.json",
+            content: "{}",
+            entryId: "cc.user.settings",
+          },
         ],
         manifestFiles: [
           {
@@ -87,8 +91,6 @@ describe("readRemoteFile", () => {
   it("reads via the provider at the manifest's remote path", async () => {
     const p = new InMemoryProvider();
     await p.writeText("dotai/m1/files/cc.user.memory/CLAUDE.md", "hi");
-    expect(
-      await readRemoteFile(p, "m1", "files/cc.user.memory/CLAUDE.md"),
-    ).toBe("hi");
+    expect(await readRemoteFile(p, "m1", "files/cc.user.memory/CLAUDE.md")).toBe("hi");
   });
 });

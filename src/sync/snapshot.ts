@@ -48,7 +48,16 @@ async function collectForResolved(
   const projectSlug = project ? slugify(project.name) : undefined;
 
   if (entry.kind === "file") {
-    await tryCollectFile(entry, absPath, "", project, projectSlug, io, out, manifestFiles);
+    await tryCollectFile(
+      entry,
+      absPath,
+      "",
+      project,
+      projectSlug,
+      io,
+      out,
+      manifestFiles,
+    );
     return;
   }
 

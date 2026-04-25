@@ -59,9 +59,7 @@ describe("parseManifest", () => {
   });
 
   it("rejects unknown schemaVersion", () => {
-    expect(() => parseManifest('{"schemaVersion":2}')).toThrow(
-      /schemaVersion/i,
-    );
+    expect(() => parseManifest('{"schemaVersion":2}')).toThrow(/schemaVersion/i);
   });
 
   it("rejects malformed JSON", () => {

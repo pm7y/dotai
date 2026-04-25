@@ -80,9 +80,7 @@ export function OtherMachinesSection() {
               <li key={m.machineId}>
                 <button
                   type="button"
-                  onClick={() =>
-                    setSelected(isSelected ? null : m.machineId)
-                  }
+                  onClick={() => setSelected(isSelected ? null : m.machineId)}
                   className="w-full text-left"
                 >
                   <span className="font-medium">{m.machineLabel}</span>{" "}
@@ -93,23 +91,16 @@ export function OtherMachinesSection() {
                 {isSelected && (
                   <ul className="ml-3 mt-1 flex flex-col gap-0.5">
                     {m.files.map((f) => (
-                      <li
-                        key={`${f.entryId}/${f.relativePath}/${f.projectSlug ?? ""}`}
-                      >
+                      <li key={`${f.entryId}/${f.relativePath}/${f.projectSlug ?? ""}`}>
                         <button
                           type="button"
                           onClick={() =>
-                            openFile(
-                              m.machineId,
-                              fileRemotePath(f),
-                              f.sha256,
-                            )
+                            openFile(m.machineId, fileRemotePath(f), f.sha256)
                           }
                           className="text-left underline-offset-2 hover:underline"
                         >
                           {f.entryId}
-                          {f.projectSlug ? `/${f.projectSlug}` : ""}/
-                          {f.relativePath}
+                          {f.projectSlug ? `/${f.projectSlug}` : ""}/{f.relativePath}
                         </button>
                       </li>
                     ))}

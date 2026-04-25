@@ -6,12 +6,7 @@ import { tauriLocalIO } from "@/lib/local-io";
 import { loadSyncSettings, saveSyncSettings } from "@/lib/sync-store";
 import { projectsAtom } from "@/state/projects";
 import { pushStateAtom, syncSettingsAtom } from "@/state/sync";
-import {
-  collectSnapshot,
-  createProvider,
-  pushSnapshot,
-  slugify,
-} from "@/sync";
+import { collectSnapshot, createProvider, pushSnapshot, slugify } from "@/sync";
 
 function toNodePlatform(p: string): "darwin" | "linux" | "win32" {
   if (p === "macos") return "darwin";
@@ -109,8 +104,7 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const ready =
-    settings.providerConfig !== null && settings.machineSlug.length > 0;
+  const ready = settings.providerConfig !== null && settings.machineSlug.length > 0;
 
   return (
     <div

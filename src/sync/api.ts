@@ -1,11 +1,7 @@
 import { buildManifest, parseManifest } from "./manifest";
 import { joinRemote } from "./providers/types";
 import type { CollectedSnapshot } from "./snapshot";
-import type {
-  RemotePath,
-  SnapshotManifest,
-  SyncProvider,
-} from "./types";
+import type { RemotePath, SnapshotManifest, SyncProvider } from "./types";
 
 const ROOT_PREFIX = "dotai";
 
