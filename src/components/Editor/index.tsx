@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ExternalLink, Save, RotateCcw, Lock } from "lucide-react";
+import { ExternalLink, Save, RotateCcw, Lock, Braces } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState, type Extension } from "@codemirror/state";
@@ -42,6 +42,7 @@ export function Editor() {
   const viewRef = useRef<EditorView | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
+  const [formatError, setFormatError] = useState<string | null>(null);
 
   const entry = selection.entryId ? entryById(selection.entryId) : null;
   const isMarkdown = entry?.language === "markdown";
@@ -99,6 +100,45 @@ export function Editor() {
       setSaveState({ status: "error", message: String(e) });
     }
   }, [filePath, buffer, isPluginReadOnly, setBuffers]);
+
+  const formatJson = useCallback(() => {
+    if (!filePath || !buffer || isPluginReadOnly) return;
+    if (entry?.language !== "json") return;
+    try {
+      const parsed = JSON.parse(buffer.currentContent);
+      const trailingNewline = buffer.currentContent.endsWith("\n") ? "\n" : "";
+      const formatted = JSON.stringify(parsed, null, 2) + trailingNewline;
+      setFormatError(null);
+      if (formatted === buffer.currentContent) return;
+      setBuffers((prev) => {
+        const existing = prev[filePath];
+        if (!existing) return prev;
+        return {
+          ...prev,
+          [filePath]: {
+            ...existing,
+            currentContent: formatted,
+            dirty: formatted !== existing.originalContent,
+          },
+        };
+      });
+      if (viewRef.current) {
+        viewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: viewRef.current.state.doc.length,
+            insert: formatted,
+          },
+        });
+      }
+    } catch (e) {
+      setFormatError(e instanceof Error ? e.message : String(e));
+    }
+  }, [filePath, buffer, isPluginReadOnly, entry, setBuffers]);
+
+  useEffect(() => {
+    setFormatError(null);
+  }, [filePath]);
 
   const revert = useCallback(() => {
     if (!filePath || !buffer || !buffer.dirty) return;
@@ -158,7 +198,10 @@ export function Editor() {
   const onJumpToFirst = useCallback(() => {
     if (!viewRef.current || findings.length === 0) return;
     const firstLine = findings[0].line;
-    const lineNumber = Math.max(1, Math.min(firstLine, viewRef.current.state.doc.lines));
+    const lineNumber = Math.max(
+      1,
+      Math.min(firstLine, viewRef.current.state.doc.lines),
+    );
     const lineInfo = viewRef.current.state.doc.line(lineNumber);
     viewRef.current.dispatch({
       selection: { anchor: lineInfo.from },
@@ -416,6 +459,18 @@ export function Editor() {
           </span>
           {filePath && !isPluginReadOnly && (
             <>
+              {entry.language === "json" && (
+                <button
+                  type="button"
+                  disabled={!buffer}
+                  onClick={formatJson}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-(--color-bg-muted) disabled:cursor-not-allowed disabled:opacity-30"
+                  title="Format JSON (pretty-print, 2-space indent)"
+                >
+                  <Braces size={11} />
+                  Format
+                </button>
+              )}
               <button
                 type="button"
                 disabled={!buffer?.dirty}
@@ -455,6 +510,18 @@ export function Editor() {
       {saveState.status === "error" && (
         <div className="border-b border-(--color-danger)/40 bg-(--color-danger)/10 px-3 py-1.5 text-[11px] text-(--color-danger)">
           Save failed: {saveState.message}
+        </div>
+      )}
+      {formatError && (
+        <div className="flex items-center justify-between gap-2 border-b border-(--color-danger)/40 bg-(--color-danger)/10 px-3 py-1.5 text-[11px] text-(--color-danger)">
+          <span>Format failed: {formatError}</span>
+          <button
+            type="button"
+            onClick={() => setFormatError(null)}
+            className="rounded px-1.5 py-0.5 hover:bg-(--color-danger)/10"
+          >
+            Dismiss
+          </button>
         </div>
       )}
       {isEnv ? (
