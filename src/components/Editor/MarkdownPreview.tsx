@@ -57,9 +57,7 @@ export function MarkdownPreview({ source }: Props) {
   const body = stripFrontmatter(source).trim();
   if (body.length === 0) {
     return (
-      <div className="markdown-preview text-(--color-fg-muted) italic">
-        Empty file
-      </div>
+      <div className="markdown-preview text-(--color-fg-muted) italic">Empty file</div>
     );
   }
   return (
