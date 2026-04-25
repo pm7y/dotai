@@ -19,6 +19,7 @@ import { viewModeAtom } from "@/state/viewMode";
 import { loadViewMode, saveViewMode, type ViewMode } from "@/lib/preferences-store";
 import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
 import { ViewModeSelector } from "@/components/Editor/ViewModeSelector";
+import { LintPill } from "@/components/Editor/LintPill";
 
 type LoadState =
   | { status: "idle" }
@@ -148,6 +149,18 @@ export function Editor() {
   useEffect(() => {
     if (!viewRef.current) return;
     viewRef.current.dispatch({ effects: setLintFindings.of(findings) });
+  }, [findings]);
+
+  const onJumpToFirst = useCallback(() => {
+    if (!viewRef.current || findings.length === 0) return;
+    const firstLine = findings[0].line;
+    const lineNumber = Math.max(1, Math.min(firstLine, viewRef.current.state.doc.lines));
+    const lineInfo = viewRef.current.state.doc.line(lineNumber);
+    viewRef.current.dispatch({
+      selection: { anchor: lineInfo.from },
+      effects: EditorView.scrollIntoView(lineInfo.from, { y: "center" }),
+    });
+    viewRef.current.focus();
   }, [findings]);
 
   const editable = !!filePath && !isPluginReadOnly;
@@ -386,6 +399,7 @@ export function Editor() {
           {isMarkdown && (
             <ViewModeSelector value={viewMode} onChange={onViewModeChange} />
           )}
+          <LintPill onJumpToFirst={onJumpToFirst} />
           <span className="rounded bg-(--color-bg-muted) px-2 py-0.5 font-mono uppercase">
             {entry.language}
           </span>
