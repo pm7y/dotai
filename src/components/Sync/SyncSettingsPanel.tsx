@@ -19,7 +19,7 @@ function toNodePlatform(p: string): "darwin" | "linux" | "win32" {
   return "linux";
 }
 
-export function SyncSettingsPanel() {
+export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
   const [settings, setSettings] = useAtom(syncSettingsAtom);
   const [pushState, setPushState] = useAtom(pushStateAtom);
   const [projects] = useAtom(projectsAtom);
@@ -35,7 +35,31 @@ export function SyncSettingsPanel() {
     if (settings && labelDraft === "") setLabelDraft(settings.machineLabel);
   }, [settings, labelDraft]);
 
-  if (settings === null) return <div className="p-4 text-sm">Loading…</div>;
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (settings === null) {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-16"
+        onClick={onClose}
+      >
+        <div
+          className="w-[520px] max-w-[90vw] overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg) shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-4 text-sm">Loading…</div>
+        </div>
+      </div>
+    );
+  }
 
   async function pickFolder() {
     const selected = await open({ directory: true, multiple: false });
@@ -89,86 +113,98 @@ export function SyncSettingsPanel() {
     settings.providerConfig !== null && settings.machineSlug.length > 0;
 
   return (
-    <div className="flex flex-col gap-4 p-4 text-sm">
-      <h2 className="text-base font-semibold">Cloud Sync</h2>
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-16"
+      onClick={onClose}
+    >
+      <div
+        className="w-[520px] max-w-[90vw] overflow-hidden rounded-lg border border-(--color-border) bg-(--color-bg) shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col gap-4 p-4 text-sm">
+          <h2 className="text-base font-semibold">Cloud Sync</h2>
 
-      <div>
-        <label className="mb-1 block text-(--color-fg-muted)">Provider</label>
-        <select
-          className="w-full rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
-          value="filesystem"
-          onChange={() => {
-            /* only one option in v1 */
-          }}
-        >
-          <option value="filesystem">Local folder</option>
-        </select>
-      </div>
+          <div>
+            <label className="mb-1 block text-(--color-fg-muted)">Provider</label>
+            <select
+              className="w-full rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
+              value="filesystem"
+              onChange={() => {
+                /* only one option in v1 */
+              }}
+            >
+              <option value="filesystem">Local folder</option>
+            </select>
+          </div>
 
-      <div>
-        <label className="mb-1 block text-(--color-fg-muted)">Sync folder</label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            readOnly
-            value={settings.providerConfig?.rootPath ?? ""}
-            placeholder="(none selected)"
-            className="flex-1 rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
-          />
-          <button
-            type="button"
-            onClick={pickFolder}
-            className="rounded border border-(--color-border) px-2 py-1"
-          >
-            Pick…
-          </button>
+          <div>
+            <label className="mb-1 block text-(--color-fg-muted)">Sync folder</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={settings.providerConfig?.rootPath ?? ""}
+                placeholder="(none selected)"
+                className="flex-1 rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
+              />
+              <button
+                type="button"
+                onClick={pickFolder}
+                className="rounded border border-(--color-border) px-2 py-1"
+              >
+                Pick…
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-(--color-fg-muted)">This machine</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={labelDraft}
+                onChange={(e) => setLabelDraft(e.target.value)}
+                placeholder="e.g. Work laptop"
+                className="flex-1 rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
+              />
+              <button
+                type="button"
+                onClick={saveLabel}
+                className="rounded border border-(--color-border) px-2 py-1"
+              >
+                Save
+              </button>
+            </div>
+            {settings.machineSlug && (
+              <p className="mt-1 text-xs text-(--color-fg-muted)">
+                Folder slug: <code>{settings.machineSlug}</code>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <button
+              type="button"
+              disabled={!ready || pushState.status === "pushing"}
+              onClick={pushNow}
+              className="rounded bg-(--color-accent) px-3 py-1 text-(--color-accent-fg) disabled:opacity-50"
+            >
+              {pushState.status === "pushing"
+                ? `Pushing ${pushState.done} / ${pushState.total}…`
+                : "Push snapshot now"}
+            </button>
+            {pushState.status === "error" && (
+              <p className="mt-1 text-(--color-danger)">{pushState.message}</p>
+            )}
+            {settings.lastPushedAtMs && pushState.status !== "pushing" && (
+              <p className="mt-1 text-xs text-(--color-fg-muted)">
+                Last pushed {new Date(settings.lastPushedAtMs).toLocaleString()}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-(--color-fg-muted)">This machine</label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={labelDraft}
-            onChange={(e) => setLabelDraft(e.target.value)}
-            placeholder="e.g. Work laptop"
-            className="flex-1 rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
-          />
-          <button
-            type="button"
-            onClick={saveLabel}
-            className="rounded border border-(--color-border) px-2 py-1"
-          >
-            Save
-          </button>
-        </div>
-        {settings.machineSlug && (
-          <p className="mt-1 text-xs text-(--color-fg-muted)">
-            Folder slug: <code>{settings.machineSlug}</code>
-          </p>
-        )}
-      </div>
-
-      <div>
-        <button
-          type="button"
-          disabled={!ready || pushState.status === "pushing"}
-          onClick={pushNow}
-          className="rounded bg-(--color-accent) px-3 py-1 text-(--color-accent-fg) disabled:opacity-50"
-        >
-          {pushState.status === "pushing"
-            ? `Pushing ${pushState.done} / ${pushState.total}…`
-            : "Push snapshot now"}
-        </button>
-        {pushState.status === "error" && (
-          <p className="mt-1 text-(--color-danger)">{pushState.message}</p>
-        )}
-        {settings.lastPushedAtMs && pushState.status !== "pushing" && (
-          <p className="mt-1 text-xs text-(--color-fg-muted)">
-            Last pushed {new Date(settings.lastPushedAtMs).toLocaleString()}
-          </p>
-        )}
       </div>
     </div>
   );

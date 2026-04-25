@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { ChevronDown, FolderOpen, Search, Settings } from "lucide-react";
+import { ChevronDown, Cloud, FolderOpen, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { open as openFolderDialog } from "@tauri-apps/plugin-dialog";
@@ -9,6 +9,7 @@ import { loadProjects, saveProjects } from "@/lib/projects-store";
 import { SearchPanel } from "@/components/SearchPanel";
 import { ProjectsPanel } from "@/components/ProjectsPanel";
 import { AboutDialog } from "@/components/AboutDialog";
+import { SyncSettingsPanel } from "@/components/Sync/SyncSettingsPanel";
 
 export function TopBar() {
   const [projects, setProjects] = useAtom(projectsAtom);
@@ -17,6 +18,7 @@ export function TopBar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [syncSettingsOpen, setSyncSettingsOpen] = useState(false);
   const current = projects.find((p) => p.path === project) ?? null;
 
   // load persisted projects once on mount
@@ -152,6 +154,14 @@ export function TopBar() {
       </div>
       <button
         type="button"
+        onClick={() => setSyncSettingsOpen(true)}
+        className="flex items-center gap-2 rounded border border-(--color-border) px-2 py-1 text-[11px] text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
+      >
+        <Cloud size={12} />
+        <span>Cloud Sync</span>
+      </button>
+      <button
+        type="button"
         onClick={() => setSearchOpen(true)}
         className="flex items-center gap-2 rounded border border-(--color-border) px-2 py-1 text-[11px] text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
       >
@@ -164,6 +174,9 @@ export function TopBar() {
       {searchOpen && <SearchPanel onClose={() => setSearchOpen(false)} />}
       {projectsOpen && <ProjectsPanel onClose={() => setProjectsOpen(false)} />}
       {aboutOpen && <AboutDialog onClose={() => setAboutOpen(false)} />}
+      {syncSettingsOpen && (
+        <SyncSettingsPanel onClose={() => setSyncSettingsOpen(false)} />
+      )}
     </header>
   );
 }

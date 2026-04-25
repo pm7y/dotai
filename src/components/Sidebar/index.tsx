@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronDown, ChevronRight, FolderTree } from "lucide-react";
 import { useMemo, useState } from "react";
+import { OtherMachinesSection } from "@/components/Sync/OtherMachinesSection";
 import {
   CATEGORY_LABELS,
   SCOPE_LABELS,
@@ -143,6 +144,9 @@ export function Sidebar() {
           </div>
         );
       })}
+      <div className="border-t border-(--color-border) p-2">
+        <OtherMachinesSection />
+      </div>
     </nav>
   );
 }
