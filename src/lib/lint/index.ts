@@ -51,10 +51,6 @@ export function __setRegistryForTests(rules: Rule[]): () => void {
   };
 }
 
-export function registerRules(rules: Rule[]): void {
-  REGISTRY.push(...rules);
-}
-
 export type { Rule, RuleFinding, Severity, RuleContext } from "./types";
 
 REGISTRY.push(schemaRule);

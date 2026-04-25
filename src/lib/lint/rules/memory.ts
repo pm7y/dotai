@@ -29,6 +29,9 @@ export const memoryRules: Rule[] = [
     id: "memory/no-headings",
     severity: "warning",
     appliesTo: appliesToMemory,
+    // Note: heading detection is line-based, so a `#` line inside a fenced code
+    // block will count as a heading and suppress this warning. Acceptable for v1
+    // (would need a markdown AST to be exact).
     run: (ctx) => {
       const lineCount = ctx.content.split(/\r?\n/).length;
       if (lineCount < 200) return [];

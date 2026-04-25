@@ -58,12 +58,26 @@ export function findKeyLine(
   key: string,
   yamlStartLine: number,
 ): number {
+  // Match only top-level keys (no leading whitespace) so we don't mis-attribute
+  // to a key that appears inside a multi-line YAML value (e.g. a folded `description: |` block).
   const lines = yamlText.split(/\r?\n/);
-  const idx = lines.findIndex((l) => l.trimStart().startsWith(`${key}:`));
+  const idx = lines.findIndex((l) => /^[^\s]/.test(l) && l.startsWith(`${key}:`));
   if (idx === -1) return yamlStartLine;
   return yamlStartLine + idx;
 }
 
 export function extractYaml(content: string): string {
   return content.match(FRONTMATTER_RE)?.[1] ?? "";
+}
+
+export function parseToolList(fm: Record<string, unknown>, key: string): string[] {
+  const t = fm[key];
+  if (Array.isArray(t)) return t.filter((x): x is string => typeof x === "string");
+  if (typeof t === "string") {
+    return t
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
 }

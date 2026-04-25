@@ -1,5 +1,5 @@
 import type { Rule, RuleFinding } from "../types";
-import { findKeyLine, extractYaml } from "./shared";
+import { findKeyLine, extractYaml, parseToolList } from "./shared";
 import { isKnownTool } from "../tool-names";
 
 const TRIGGER_RE = /\b(use\s+this\s+agent|use\s+when|triggers?\s+when)\b/i;
@@ -11,18 +11,6 @@ function appliesToAgents(entry: { category: string }) {
 function basenameNoExt(filePath: string): string {
   const parts = filePath.split(/[/\\]/);
   return (parts[parts.length - 1] ?? "").replace(/\.md$/i, "");
-}
-
-function toolList(fm: Record<string, unknown>): string[] {
-  const t = fm.tools;
-  if (Array.isArray(t)) return t.filter((x): x is string => typeof x === "string");
-  if (typeof t === "string") {
-    return t
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-  return [];
 }
 
 export const agentRules: Rule[] = [
@@ -50,7 +38,7 @@ export const agentRules: Rule[] = [
     severity: "error",
     appliesTo: appliesToAgents,
     run: (ctx): RuleFinding[] => {
-      const tools = toolList(ctx.frontmatter ?? {});
+      const tools = parseToolList(ctx.frontmatter ?? {}, "tools");
       const yaml = extractYaml(ctx.content);
       const toolsLine = findKeyLine(yaml, "tools", ctx.yamlStartLine);
       const invalid = tools.filter((t) => !isKnownTool(t));

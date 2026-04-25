@@ -1,20 +1,9 @@
 import type { Rule, RuleFinding } from "../types";
-import { findKeyLine, extractYaml } from "./shared";
+import { findKeyLine, extractYaml, parseToolList } from "./shared";
 import { isKnownTool } from "../tool-names";
 
 function appliesToCommands(entry: { category: string }) {
   return entry.category === "commands";
-}
-
-function toolList(fm: Record<string, unknown>): string[] {
-  const t = fm["allowed-tools"];
-  if (Array.isArray(t)) return t.filter((x): x is string => typeof x === "string");
-  if (typeof t === "string")
-    return t
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  return [];
 }
 
 const ARG_RE = /\$(?:\d+|ARGUMENTS)\b/;
@@ -60,7 +49,7 @@ export const commandRules: Rule[] = [
     appliesTo: appliesToCommands,
     run: (ctx): RuleFinding[] => {
       const yaml = extractYaml(ctx.content);
-      const tools = toolList(ctx.frontmatter ?? {});
+      const tools = parseToolList(ctx.frontmatter ?? {}, "allowed-tools");
       const line = findKeyLine(yaml, "allowed-tools", ctx.yamlStartLine);
       return tools
         .filter((t) => !isKnownTool(t))

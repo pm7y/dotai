@@ -149,13 +149,20 @@ describe("skill rules", () => {
     "---\n" +
     Object.entries({
       name: "foo-bar",
-      description: "Use when foo bar baz qux quux corge.",
+      // Default description is intentionally over the 40-char threshold so the
+      // baseline fixture produces no findings.
+      description: "Use when handling foo bar baz qux quux corge tasks.",
       ...extra,
     })
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n") +
     "\n---\n";
   const body = "## Body\n".padEnd(150, "x");
+
+  test("golden path: valid skill produces no findings", () => {
+    const findings = runRules(skill(), fm({}) + body, path);
+    expect(findings).toEqual([]);
+  });
 
   test("skill/name-mismatch when name != parent directory", () => {
     const findings = runRules(skill(), fm({ name: "wrong" }) + body, path);
