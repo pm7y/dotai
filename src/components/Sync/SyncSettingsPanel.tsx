@@ -67,10 +67,11 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
     await saveSyncSettings(next);
   }
 
-  async function saveLabel() {
+  async function updateLabel(value: string) {
+    setLabelDraft(value);
     const fallback = (await hostname()) ?? "machine";
-    const slug = slugify(labelDraft || fallback);
-    const next = { ...settings!, machineLabel: labelDraft, machineSlug: slug };
+    const slug = slugify(value || fallback);
+    const next = { ...settings!, machineLabel: value, machineSlug: slug };
     setSettings(next);
     await saveSyncSettings(next);
   }
@@ -155,22 +156,18 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
 
           <div>
             <label className="mb-1 block text-(--color-fg-muted)">This machine</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={labelDraft}
-                onChange={(e) => setLabelDraft(e.target.value)}
-                placeholder="e.g. Work laptop"
-                className="flex-1 rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
-              />
-              <button
-                type="button"
-                onClick={saveLabel}
-                className="rounded border border-(--color-border) px-2 py-1"
-              >
-                Save
-              </button>
-            </div>
+            <input
+              type="text"
+              value={labelDraft}
+              onChange={(e) => void updateLabel(e.target.value)}
+              placeholder="e.g. Work laptop"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              name="dotai-machine-label"
+              className="w-full rounded border border-(--color-border) bg-(--color-bg-subtle) p-1"
+            />
             {settings.machineSlug && (
               <p className="mt-1 text-xs text-(--color-fg-muted)">
                 Folder slug: <code>{settings.machineSlug}</code>
