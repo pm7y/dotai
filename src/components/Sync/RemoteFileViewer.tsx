@@ -23,10 +23,13 @@ export function RemoteFileViewer() {
       }),
     });
     setIntegrity("unknown");
+    let cancelled = false;
     void sha256Hex(view.content).then((digest) => {
+      if (cancelled) return;
       setIntegrity(digest === view.manifestSha256 ? "ok" : "mismatch");
     });
     return () => {
+      cancelled = true;
       cmRef.current?.destroy();
       cmRef.current = null;
     };

@@ -1,12 +1,22 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { hostname, platform } from "@tauri-apps/plugin-os";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { tauriLocalIO } from "@/lib/local-io";
-import { loadSyncSettings, saveSyncSettings } from "@/lib/sync-store";
+import {
+  loadSyncSettings,
+  saveSyncSettings,
+  type SyncSettings,
+} from "@/lib/sync-store";
 import { projectsAtom } from "@/state/projects";
-import { pushStateAtom, syncSettingsAtom } from "@/state/sync";
-import { collectSnapshot, createProvider, pushSnapshot, slugify } from "@/sync";
+import { pushStateAtom, remoteMachinesAtom, syncSettingsAtom } from "@/state/sync";
+import {
+  collectSnapshot,
+  createProvider,
+  listMachines,
+  pushSnapshot,
+  slugify,
+} from "@/sync";
 
 function toNodePlatform(p: string): "darwin" | "linux" | "win32" {
   if (p === "macos") return "darwin";
@@ -18,6 +28,7 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
   const [settings, setSettings] = useAtom(syncSettingsAtom);
   const [pushState, setPushState] = useAtom(pushStateAtom);
   const [projects] = useAtom(projectsAtom);
+  const [remoteMachines, setRemoteMachines] = useAtom(remoteMachinesAtom);
   const [labelDraft, setLabelDraft] = useState("");
 
   useEffect(() => {
@@ -29,6 +40,31 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (settings && labelDraft === "") setLabelDraft(settings.machineLabel);
   }, [settings, labelDraft]);
+
+  // Load remote machines once when the panel opens, so slug collision
+  // detection has the set of taken slugs to work against.
+  useEffect(() => {
+    if (!settings?.providerConfig) return;
+    if (remoteMachines.status !== "idle") return;
+    setRemoteMachines({ status: "loading" });
+    const provider = createProvider(settings.providerConfig, tauriLocalIO);
+    listMachines(provider)
+      .then((machines) => setRemoteMachines({ status: "ready", machines }))
+      .catch((err) =>
+        setRemoteMachines({
+          status: "error",
+          message: err instanceof Error ? err.message : String(err),
+        }),
+      );
+  }, [settings?.providerConfig, remoteMachines.status, setRemoteMachines]);
+
+  const takenSlugs = useMemo(() => {
+    if (remoteMachines.status !== "ready") return new Set<string>();
+    const own = settings?.machineSlug ?? "";
+    return new Set(
+      remoteMachines.machines.map((m) => m.machineId).filter((s) => s !== own),
+    );
+  }, [remoteMachines, settings?.machineSlug]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -69,7 +105,7 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
 
   function updateLabel(value: string) {
     setLabelDraft(value);
-    const slug = slugify(value || "machine");
+    const slug = slugify(value || "machine", takenSlugs);
     const next = { ...settings!, machineLabel: value, machineSlug: slug };
     setSettings(next);
     void saveSyncSettings(next).catch(() => {
@@ -78,25 +114,31 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
   }
 
   async function pushNow() {
-    if (!settings!.providerConfig || !settings!.machineSlug) return;
+    const start = settings;
+    if (!start?.providerConfig || !start.machineSlug) return;
     setPushState({ status: "pushing", done: 0, total: 0 });
     try {
-      const provider = createProvider(settings!.providerConfig, tauriLocalIO);
+      const provider = createProvider(start.providerConfig, tauriLocalIO);
       const collected = await collectSnapshot({ io: tauriLocalIO, projects });
       const total = collected.files.length + 1;
       await pushSnapshot({
         provider,
-        machineSlug: settings!.machineSlug,
-        machineLabel: settings!.machineLabel,
+        machineSlug: start.machineSlug,
+        machineLabel: start.machineLabel,
         hostname: (await hostname()) ?? "unknown",
         platform: toNodePlatform(await platform()),
         dotaiVersion: "0.1.0",
         collected,
         onProgress: (done) => setPushState({ status: "pushing", done, total }),
       });
-      const next = { ...settings!, lastPushedAtMs: Date.now() };
-      setSettings(next);
-      await saveSyncSettings(next);
+      // Merge onto the latest settings, not the snapshot from pushNow's start —
+      // the user may have edited the label mid-push.
+      let merged: SyncSettings | null = null;
+      setSettings((prev) => {
+        merged = prev ? { ...prev, lastPushedAtMs: Date.now() } : prev;
+        return merged ?? prev;
+      });
+      if (merged) await saveSyncSettings(merged);
       setPushState({ status: "idle" });
     } catch (err) {
       setPushState({

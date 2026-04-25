@@ -212,12 +212,15 @@ pub fn write_file(req: WriteRequest) -> AppResult<WriteResult> {
 }
 
 fn normalize_line_endings(content: &str, line_ending: Option<&str>) -> String {
+    // None = preserve the bytes exactly (so callers like cloud-sync can hash
+    // pre-write and have the digest match what lands on disk).
     match line_ending {
+        Some("lf") => content.replace("\r\n", "\n"),
         Some("crlf") => {
             let lf_only = content.replace("\r\n", "\n");
             lf_only.replace('\n', "\r\n")
         }
-        _ => content.replace("\r\n", "\n"),
+        _ => content.to_string(),
     }
 }
 

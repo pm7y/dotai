@@ -19,18 +19,34 @@ export class FilesystemProvider implements SyncProvider {
   }
 
   async list(prefix: RemotePath): Promise<RemoteEntry[]> {
-    const dir = this.toAbs(prefix);
-    const stat = await this.io.statPath(dir);
+    const root = this.toAbs(prefix);
+    const stat = await this.io.statPath(root);
     if (!stat.exists || !stat.isDir) return [];
-    const entries = await this.io.listDir(dir);
-    const trimmedPrefix = stripTrailingSlash(prefix);
-    return entries
-      .filter((e) => !e.isDir)
-      .map((e) => ({
-        path: trimmedPrefix ? `${trimmedPrefix}/${e.name}` : e.name,
-        sizeBytes: e.sizeBytes,
-        mtimeMs: e.mtimeMs ?? undefined,
-      }));
+    const out: RemoteEntry[] = [];
+    await this.walk(root, stripTrailingSlash(prefix), out);
+    return out;
+  }
+
+  // The Rust `list_dir` glob matcher is depth-bounded by the number of
+  // glob segments and has no globstar — so we walk one level at a time.
+  private async walk(
+    absDir: string,
+    relPrefix: string,
+    out: RemoteEntry[],
+  ): Promise<void> {
+    const entries = await this.io.listDir(absDir);
+    for (const e of entries) {
+      const childRel = relPrefix ? `${relPrefix}/${e.name}` : e.name;
+      if (e.isDir) {
+        await this.walk(e.absPath, childRel, out);
+      } else {
+        out.push({
+          path: childRel,
+          sizeBytes: e.sizeBytes,
+          mtimeMs: e.mtimeMs ?? undefined,
+        });
+      }
+    }
   }
 
   async readText(p: RemotePath): Promise<string> {
@@ -39,7 +55,10 @@ export class FilesystemProvider implements SyncProvider {
   }
 
   async writeText(p: RemotePath, content: string): Promise<void> {
-    await this.io.writeFile({ path: this.toAbs(p), content, lineEnding: "lf" });
+    // Sync writes must preserve content byte-for-byte so the SHA-256 we
+    // hashed pre-push still matches what gets read back. Don't pass
+    // lineEnding — that would normalize CRLF and corrupt the digest.
+    await this.io.writeFile({ path: this.toAbs(p), content });
   }
 
   private toAbs(remote: RemotePath): string {

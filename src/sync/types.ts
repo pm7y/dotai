@@ -1,7 +1,7 @@
 import type { ReadResult, FileMeta, DirEntryDto } from "@/lib/tauri";
 import type { Scope } from "@/catalog";
 
-/** POSIX-style relative path, e.g. "dotai/work-laptop/manifest.json". */
+/** POSIX-style relative path, e.g. "work-laptop/manifest.json". */
 export type RemotePath = string;
 
 export type RemoteEntry = {

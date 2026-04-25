@@ -22,3 +22,17 @@ export function entriesForToolScope(tool: ToolId, scope: Scope): CatalogEntry[] 
 export function entryById(id: string): CatalogEntry | undefined {
   return CATALOG.find((e) => e.id === id);
 }
+
+/**
+ * Marker paths used by `scanProjects` to detect a project directory. We keep
+ * these here (not in Rust) so adding a new tool only touches TS. Bare
+ * filenames like `CLAUDE.md` are excluded — they're too generic to mark a
+ * project on their own.
+ */
+export const PROJECT_SCAN_MARKERS: readonly string[] = [
+  ".claude",
+  ".mcp.json",
+  ".copilot",
+  ".github/agents",
+  ".github/hooks",
+];

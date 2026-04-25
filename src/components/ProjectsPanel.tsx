@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { open as openFolderDialog } from "@tauri-apps/plugin-dialog";
 import { FolderOpen, Plus, Trash2 } from "lucide-react";
+import { PROJECT_SCAN_MARKERS } from "@/catalog";
 import { projectsAtom, type Project } from "@/state/projects";
 import { scanProjects, type ScanResult } from "@/lib/tauri";
 import { saveProjects } from "@/lib/projects-store";
@@ -48,7 +49,11 @@ export function ProjectsPanel({ onClose }: { onClose: () => void }) {
     setScanRoot(picked);
     setScanState({ status: "scanning" });
     try {
-      const results = await scanProjects({ root: picked, maxDepth: 3 });
+      const results = await scanProjects({
+        root: picked,
+        maxDepth: 3,
+        markers: PROJECT_SCAN_MARKERS,
+      });
       setScanState({ status: "done", results });
     } catch (e) {
       setScanState({ status: "error", message: String(e) });

@@ -229,14 +229,24 @@ export function Editor() {
     void watchPath(filePath);
   }, [filePath, isEnv]);
 
-  // listen for external changes
+  // The watch listener must NOT redepend on `buffers` (changes per keystroke
+  // and would re-subscribe on every change). Keep the latest buffers/filePath
+  // in refs and read them inside the listener; the effect itself is mounted once.
+  const buffersRef = useRef(buffers);
+  useEffect(() => {
+    buffersRef.current = buffers;
+  }, [buffers]);
+  const filePathRef = useRef(filePath);
+  useEffect(() => {
+    filePathRef.current = filePath;
+  }, [filePath]);
+
   useEffect(() => {
     let unlisten: (() => void) | null = null;
     void onWatchEvent((ev) => {
       for (const changedPath of ev.paths) {
-        const target = buffers[changedPath];
+        const target = buffersRef.current[changedPath];
         if (!target) continue;
-        const isOurOwnSave = ev.kind.includes("Modify");
         void readFile(changedPath)
           .then((res) => {
             if (
@@ -284,7 +294,7 @@ export function Editor() {
                 },
               };
             });
-            if (viewRef.current && filePath === changedPath) {
+            if (viewRef.current && filePathRef.current === changedPath) {
               viewRef.current.dispatch({
                 changes: {
                   from: 0,
@@ -297,7 +307,6 @@ export function Editor() {
           .catch(() => {
             // file may have been deleted; ignore
           });
-        void isOurOwnSave;
       }
     }).then((un) => {
       unlisten = un;
@@ -305,7 +314,7 @@ export function Editor() {
     return () => {
       unlisten?.();
     };
-  }, [buffers, filePath, setBuffers, setConflict]);
+  }, [setBuffers, setConflict]);
 
   if (!entry) {
     return (

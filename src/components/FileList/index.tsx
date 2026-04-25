@@ -28,13 +28,16 @@ type Candidate = {
   isDir: boolean;
 };
 
+type LoadState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; items: ListItem[]; candidates: Candidate[] }
+  | { status: "error"; message: string };
+
 export function FileList() {
   const [selection, setSelection] = useAtom(selectionAtom);
   const project = useAtomValue(projectAtom);
-  const [items, setItems] = useState<ListItem[]>([]);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<LoadState>({ status: "idle" });
   const [reloadKey, setReloadKey] = useState(0);
 
   const isProjectScope =
@@ -45,8 +48,7 @@ export function FileList() {
     let cancelled = false;
     async function load() {
       if (!selection.tool || needsProject) {
-        setItems([]);
-        setCandidates([]);
+        setState({ status: "ready", items: [], candidates: [] });
         return;
       }
       const entry = selection.entryId ? entryById(selection.entryId) : null;
@@ -58,8 +60,7 @@ export function FileList() {
       const entries = scopes
         .flatMap((s) => entriesForToolScope(selection.tool!, s))
         .filter((e) => (cat ? e.category === cat : true));
-      setLoading(true);
-      setError(null);
+      setState({ status: "loading" });
       try {
         const found: ListItem[] = [];
         const cands: Candidate[] = [];
@@ -113,13 +114,10 @@ export function FileList() {
           }
         }
         if (!cancelled) {
-          setItems(found);
-          setCandidates(cands);
+          setState({ status: "ready", items: found, candidates: cands });
         }
       } catch (e) {
-        if (!cancelled) setError(String(e));
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setState({ status: "error", message: String(e) });
       }
     }
     load();
@@ -147,9 +145,14 @@ export function FileList() {
       });
       setReloadKey((k) => k + 1);
     } catch (e) {
-      setError(String(e));
+      setState({ status: "error", message: String(e) });
     }
   }
+
+  const items = state.status === "ready" ? state.items : [];
+  const candidates = state.status === "ready" ? state.candidates : [];
+  const loading = state.status === "loading";
+  const error = state.status === "error" ? state.message : null;
 
   return (
     <section

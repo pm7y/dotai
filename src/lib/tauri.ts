@@ -135,6 +135,7 @@ export async function searchFiles(args: {
 export async function scanProjects(args: {
   root: string;
   maxDepth?: number;
+  markers: readonly string[];
 }): Promise<ScanResult[]> {
   return camel(await invoke("scan_projects", { req: snake(args) }));
 }

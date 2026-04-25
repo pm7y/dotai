@@ -7,6 +7,9 @@ use std::path::{Path, PathBuf};
 pub struct ScanRequest {
     pub root: String,
     pub max_depth: Option<usize>,
+    /// Marker paths (relative to a candidate directory) that identify a
+    /// project. Supplied by the JS catalog so domain knowledge stays there.
+    pub markers: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -15,14 +18,13 @@ pub struct ScanResult {
     pub matches: Vec<String>,
 }
 
-const MARKERS: &[&str] = &[".claude", ".mcp.json", ".github/agents", ".copilot"];
 const IGNORE: &[&str] = &["node_modules", ".git", "target", "dist", "build", ".next"];
 
-pub fn marker_matches(dir: &Path) -> Vec<String> {
+fn marker_matches(dir: &Path, markers: &[String]) -> Vec<String> {
     let mut hits = Vec::new();
-    for marker in MARKERS {
+    for marker in markers {
         if dir.join(marker).exists() {
-            hits.push((*marker).to_string());
+            hits.push(marker.clone());
         }
     }
     hits
@@ -34,7 +36,7 @@ pub fn scan_projects(req: ScanRequest) -> AppResult<Vec<ScanResult>> {
     let max_depth = req.max_depth.unwrap_or(3);
     let mut seen = BTreeSet::new();
     let mut out = Vec::new();
-    if !root.exists() {
+    if !root.exists() || req.markers.is_empty() {
         return Ok(out);
     }
     let walker = walkdir::WalkDir::new(&root)
@@ -55,7 +57,7 @@ pub fn scan_projects(req: ScanRequest) -> AppResult<Vec<ScanResult>> {
         if seen.contains(&path_str) {
             continue;
         }
-        let matches = marker_matches(path);
+        let matches = marker_matches(path, &req.markers);
         if matches.is_empty() {
             continue;
         }
