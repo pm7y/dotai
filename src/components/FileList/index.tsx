@@ -156,10 +156,17 @@ export function FileList() {
       className="flex w-72 shrink-0 flex-col border-r border-(--color-border) bg-(--color-bg)"
       aria-label="Files"
     >
-      <header className="border-b border-(--color-border) px-3 py-2 text-xs font-medium text-(--color-fg-muted)">
-        {selection.entryId
-          ? CATEGORY_LABELS[entryById(selection.entryId)?.category ?? "settings"]
-          : "Files"}
+      <header className="flex items-baseline justify-between border-b border-(--color-border) px-3 py-2 text-xs font-medium text-(--color-fg-muted)">
+        <span>
+          {selection.entryId
+            ? CATEGORY_LABELS[entryById(selection.entryId)?.category ?? "settings"]
+            : "Files"}
+        </span>
+        {!loading && items.length > 0 && (
+          <span className="text-[10px]">
+            {items.length} {items.length === 1 ? "file" : "files"}
+          </span>
+        )}
       </header>
       {needsProject && (
         <p className="p-3 text-xs text-(--color-fg-muted)">

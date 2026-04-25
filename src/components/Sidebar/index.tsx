@@ -125,17 +125,12 @@ export function Sidebar() {
                                   });
                                 }}
                                 className={cn(
-                                  "flex w-full items-center justify-between rounded px-2 py-1 text-left text-[12px] hover:bg-(--color-bg-muted)",
+                                  "flex w-full items-center rounded px-2 py-1 text-left text-[12px] hover:bg-(--color-bg-muted)",
                                   isSelected &&
                                     "bg-(--color-accent)/10 text-(--color-accent)",
                                 )}
                               >
                                 <span>{CATEGORY_LABELS[cat]}</span>
-                                {entries.length > 1 && (
-                                  <span className="text-[10px] text-(--color-fg-muted)">
-                                    {entries.length}
-                                  </span>
-                                )}
                               </button>
                             </li>
                           );
