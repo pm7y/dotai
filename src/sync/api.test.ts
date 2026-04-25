@@ -44,8 +44,8 @@ describe("pushSnapshot", () => {
         ],
       },
     });
-    expect(writes[writes.length - 1]).toBe("dotai/m1/manifest.json");
-    expect(writes).toContain("dotai/m1/files/cc.user.settings/settings.json");
+    expect(writes[writes.length - 1]).toBe("m1/manifest.json");
+    expect(writes).toContain("m1/files/cc.user.settings/settings.json");
   });
 });
 
@@ -70,10 +70,10 @@ describe("listMachines", () => {
       dotaiVersion: "0.1.0",
       files: [],
     });
-    await p.writeText("dotai/m1/manifest.json", JSON.stringify(m1));
-    await p.writeText("dotai/m1/files/cc.user.settings/settings.json", "{}");
-    await p.writeText("dotai/m2/manifest.json", JSON.stringify(m2));
-    await p.writeText("dotai/m1/notes-not-a-manifest.txt", "noise");
+    await p.writeText("m1/manifest.json", JSON.stringify(m1));
+    await p.writeText("m1/files/cc.user.settings/settings.json", "{}");
+    await p.writeText("m2/manifest.json", JSON.stringify(m2));
+    await p.writeText("m1/notes-not-a-manifest.txt", "noise");
     const machines = await listMachines(p);
     const ids = machines.map((m) => m.machineId).sort();
     expect(ids).toEqual(["m1", "m2"]);
@@ -81,7 +81,7 @@ describe("listMachines", () => {
 
   it("skips folders without a manifest", async () => {
     const p = new InMemoryProvider();
-    await p.writeText("dotai/orphan/files/x.txt", "x");
+    await p.writeText("orphan/files/x.txt", "x");
     const machines = await listMachines(p);
     expect(machines).toEqual([]);
   });
@@ -90,7 +90,7 @@ describe("listMachines", () => {
 describe("readRemoteFile", () => {
   it("reads via the provider at the manifest's remote path", async () => {
     const p = new InMemoryProvider();
-    await p.writeText("dotai/m1/files/cc.user.memory/CLAUDE.md", "hi");
+    await p.writeText("m1/files/cc.user.memory/CLAUDE.md", "hi");
     expect(await readRemoteFile(p, "m1", "files/cc.user.memory/CLAUDE.md")).toBe("hi");
   });
 });
