@@ -15,7 +15,7 @@ export function LintPill({ onJumpToFirst }: Props) {
     <button
       type="button"
       onClick={onJumpToFirst}
-      className="flex items-center gap-1.5 rounded bg-(--color-bg-muted) px-2 py-0.5 text-[11px] hover:bg-(--color-bg-emphasis)"
+      className="flex items-center gap-1.5 rounded bg-(--color-bg-muted) px-2 py-0.5 text-[11px] hover:opacity-80"
       title="Jump to first finding"
     >
       {errors > 0 && (
