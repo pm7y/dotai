@@ -30,6 +30,10 @@ export function FileList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isProjectScope =
+    selection.scope === "project" || selection.scope === "project-local";
+  const needsProject = isProjectScope && !project;
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -37,12 +41,21 @@ export function FileList() {
         setItems([]);
         return;
       }
+      if (needsProject) {
+        setItems([]);
+        return;
+      }
       const entry = selection.entryId ? entryById(selection.entryId) : null;
       const cat = entry?.category;
-      const candidates = entriesForToolScope(
-        selection.tool,
-        selection.scope ?? "user",
-      ).filter((e) => (cat ? e.category === cat : true));
+      // For project-scope categories, surface both "project" and "project-local"
+      // so e.g. clicking "Settings" lists both settings.json and settings.local.json.
+      const scopes: Array<"user" | "project" | "project-local"> =
+        selection.scope === "user" || !selection.scope
+          ? ["user"]
+          : ["project", "project-local"];
+      const candidates = scopes
+        .flatMap((s) => entriesForToolScope(selection.tool!, s))
+        .filter((e) => (cat ? e.category === cat : true));
       setLoading(true);
       setError(null);
       try {
@@ -75,20 +88,13 @@ export function FileList() {
             });
           } else if (e.kind === "dir-of-files") {
             const children = await listDir(absPath, e.fileGlob);
-            if (children.length === 0) {
-              collected.push({
-                entry: e,
-                absPath,
-                exists: false,
-                isDir: true,
-              });
-            }
             for (const child of children) {
+              if (child.isDir) continue;
               collected.push({
                 entry: e,
                 absPath: child.absPath,
                 exists: true,
-                isDir: child.isDir,
+                isDir: false,
                 sizeBytes: child.sizeBytes,
                 mtimeMs: child.mtimeMs,
                 childName: child.name,
@@ -96,7 +102,11 @@ export function FileList() {
             }
           }
         }
-        if (!cancelled) setItems(collected);
+        // Hide "not present" file entries when at least one real file exists
+        // for the same category — too noisy otherwise.
+        const hasReal = collected.some((c) => c.exists);
+        const filtered = hasReal ? collected.filter((c) => c.exists) : collected;
+        if (!cancelled) setItems(filtered);
       } catch (e) {
         if (!cancelled) setError(String(e));
       } finally {
@@ -107,7 +117,7 @@ export function FileList() {
     return () => {
       cancelled = true;
     };
-  }, [selection.tool, selection.scope, selection.entryId, project]);
+  }, [selection.tool, selection.scope, selection.entryId, project, needsProject]);
 
   return (
     <section
@@ -119,9 +129,16 @@ export function FileList() {
           ? CATEGORY_LABELS[entryById(selection.entryId)?.category ?? "settings"]
           : "Files"}
       </header>
-      {loading && <p className="p-3 text-xs text-(--color-fg-muted)">Loading…</p>}
+      {needsProject && (
+        <p className="p-3 text-xs text-(--color-fg-muted)">
+          Pick a project from the top bar to see project-scoped files.
+        </p>
+      )}
+      {!needsProject && loading && (
+        <p className="p-3 text-xs text-(--color-fg-muted)">Loading…</p>
+      )}
       {error && <p className="p-3 text-xs text-(--color-danger)">Error: {error}</p>}
-      {!loading && items.length === 0 && (
+      {!needsProject && !loading && items.length === 0 && (
         <p className="p-3 text-xs text-(--color-fg-muted)">
           No files for this category.
         </p>

@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronDown, ChevronRight, FolderTree } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -10,7 +10,7 @@ import {
   type Scope,
   type ToolId,
 } from "@/catalog";
-import { selectionAtom } from "@/state/selection";
+import { selectionAtom, projectAtom } from "@/state/selection";
 import { projectsAtom } from "@/state/projects";
 import { cn } from "@/lib/cn";
 
@@ -24,6 +24,7 @@ type ToolGroup = {
 
 export function Sidebar() {
   const [selection, setSelection] = useAtom(selectionAtom);
+  const setActiveProject = useSetAtom(projectAtom);
   const projects = useAtomValue(projectsAtom);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     "claude-code:user": true,
@@ -113,6 +114,9 @@ export function Sidebar() {
                                 type="button"
                                 onClick={() => {
                                   const first = entries[0];
+                                  if (group.projectPath) {
+                                    setActiveProject(group.projectPath);
+                                  }
                                   setSelection({
                                     tool,
                                     scope: first.scope,
