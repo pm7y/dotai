@@ -181,16 +181,22 @@ export function Editor() {
     };
   }, [filePath, isEnv, entry, buffer, setBuffers]);
 
+  // Mount/unmount CodeMirror once per file. We deliberately depend on bufferReady
+  // (not buffer) so we don't tear down on every keystroke. The buffer ref carries
+  // the latest content into the mount effect without triggering re-mounts.
+  const bufferReady = !!buffer;
+  const bufferRef = useRef(buffer);
   useEffect(() => {
-    if (!containerRef.current || isEnv || !buffer) return;
+    bufferRef.current = buffer;
+  }, [buffer]);
+  useEffect(() => {
+    if (!containerRef.current || isEnv || !filePath || !bufferReady) return;
+    const initial = bufferRef.current?.currentContent ?? "";
     if (viewRef.current) {
       viewRef.current.destroy();
       viewRef.current = null;
     }
-    const state = EditorState.create({
-      doc: buffer.currentContent,
-      extensions,
-    });
+    const state = EditorState.create({ doc: initial, extensions });
     viewRef.current = new EditorView({
       state,
       parent: containerRef.current,
@@ -199,9 +205,10 @@ export function Editor() {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-    // re-mount only when the file path changes (extensions captures current refs)
+    // extensions captures the current onChange/save refs at mount time —
+    // we deliberately don't re-mount when those change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filePath, isEnv]);
+  }, [filePath, isEnv, bufferReady]);
 
   // window-level Cmd+S as a backstop when the editor isn't focused
   useEffect(() => {
