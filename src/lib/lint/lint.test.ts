@@ -283,3 +283,36 @@ describe("command rules", () => {
     expect(findings.map((f) => f.ruleId)).toContain("command/argument-hint-mismatch");
   });
 });
+
+describe("memory rules", () => {
+  const memory = () => entryById("cc.user.memory")!;
+  const path = "/u/.claude/CLAUDE.md";
+
+  test("memory/file-too-large when content > 50 KB", () => {
+    const big = "x".repeat(51 * 1024);
+    const findings = runRules(memory(), big, path);
+    expect(findings.map((f) => f.ruleId)).toContain("memory/file-too-large");
+  });
+
+  test("memory/no-headings when 200+ lines and no #/##", () => {
+    const lines = Array.from({ length: 220 }, () => "plain prose line").join("\n");
+    const findings = runRules(memory(), lines, path);
+    expect(findings.map((f) => f.ruleId)).toContain("memory/no-headings");
+  });
+
+  test("memory/no-headings does not fire on a small file", () => {
+    const findings = runRules(memory(), "small file with no headings\n", path);
+    expect(findings.map((f) => f.ruleId)).not.toContain("memory/no-headings");
+  });
+});
+
+describe("rules-category rules", () => {
+  const rules = () => entryById("cc.user.rules")!;
+  const path = "/u/.claude/rules/some.md";
+
+  test("rules/file-too-large when content > 30 KB", () => {
+    const big = "x".repeat(31 * 1024);
+    const findings = runRules(rules(), big, path);
+    expect(findings.map((f) => f.ruleId)).toContain("rules/file-too-large");
+  });
+});

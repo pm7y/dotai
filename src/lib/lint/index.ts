@@ -5,6 +5,8 @@ import { schemaRule } from "./rules/schema";
 import { skillRules } from "./rules/skill";
 import { agentRules } from "./rules/agent";
 import { commandRules } from "./rules/command";
+import { memoryRules } from "./rules/memory";
+import { rulesCategoryRules } from "./rules/rules-category";
 
 let REGISTRY: Rule[] = [];
 
@@ -59,3 +61,4 @@ REGISTRY.push(schemaRule);
 REGISTRY.push(...skillRules);
 REGISTRY.push(...agentRules);
 REGISTRY.push(...commandRules);
+REGISTRY.push(...memoryRules, ...rulesCategoryRules);
