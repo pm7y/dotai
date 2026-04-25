@@ -77,9 +77,9 @@ export function Sidebar() {
             <button
               type="button"
               onClick={() => toggle(toolKey)}
-              className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
+              className="flex w-full items-center gap-1.5 px-3 py-2.5 text-left text-[13px] font-semibold uppercase tracking-wider text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
             >
-              {isToolOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              {isToolOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               <span>{TOOL_LABELS[tool]}</span>
             </button>
             {isToolOpen &&
@@ -92,11 +92,11 @@ export function Sidebar() {
                     <button
                       type="button"
                       onClick={() => toggle(groupKey)}
-                      className="flex w-full items-center gap-1.5 px-3 py-1 text-left text-[11px] text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
+                      className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-[13px] text-(--color-fg-muted) hover:bg-(--color-bg-muted)"
                     >
-                      {isOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                      {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                       {group.scope === "project" && (
-                        <FolderTree size={11} className="opacity-70" />
+                        <FolderTree size={13} className="opacity-70" />
                       )}
                       <span className="truncate">{group.label}</span>
                     </button>
@@ -126,7 +126,7 @@ export function Sidebar() {
                                   });
                                 }}
                                 className={cn(
-                                  "flex w-full items-center rounded px-2 py-1 text-left text-[12px] hover:bg-(--color-bg-muted)",
+                                  "flex w-full items-center rounded px-2 py-1.5 text-left text-[13px] hover:bg-(--color-bg-muted)",
                                   isSelected &&
                                     "bg-(--color-accent)/10 text-(--color-accent)",
                                 )}
