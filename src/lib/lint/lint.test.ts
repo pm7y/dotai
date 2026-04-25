@@ -189,3 +189,60 @@ describe("skill rules", () => {
     expect(findings.map((f) => f.ruleId)).toContain("skill/body-empty");
   });
 });
+
+describe("agent rules", () => {
+  const agent = () => entryById("cc.user.agents")!;
+  const path = "/u/.claude/agents/my-agent.md";
+  const fm = (extra: Record<string, string>) =>
+    "---\n" +
+    Object.entries({
+      name: "my-agent",
+      description: "Use this agent when you need to do the thing in question.",
+      model: "sonnet",
+      ...extra,
+    })
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n") +
+    "\n---\nbody body body\n";
+
+  test("agent/name-mismatch when name != filename basename", () => {
+    const findings = runRules(agent(), fm({ name: "other" }), path);
+    expect(findings.map((f) => f.ruleId)).toContain("agent/name-mismatch");
+  });
+
+  test("agent/invalid-tool flags an unknown tool name", () => {
+    const content = fm({}).replace("---\nbody", "tools: [Read, Bogus]\n---\nbody");
+    const findings = runRules(agent(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("agent/invalid-tool");
+  });
+
+  test("agent/invalid-tool accepts mcp__ prefix", () => {
+    const content = fm({}).replace(
+      "---\nbody",
+      "tools: [mcp__github__list_repos, Read]\n---\nbody",
+    );
+    const findings = runRules(agent(), content, path);
+    expect(findings.map((f) => f.ruleId)).not.toContain("agent/invalid-tool");
+  });
+
+  test("agent/description-too-short when < 40 chars", () => {
+    const findings = runRules(agent(), fm({ description: "short" }), path);
+    expect(findings.map((f) => f.ruleId)).toContain("agent/description-too-short");
+  });
+
+  test("agent/description-missing-trigger when no 'use this agent' / 'use when'", () => {
+    const findings = runRules(
+      agent(),
+      fm({ description: "Performs operations on the data store with all of the things." }),
+      path,
+    );
+    expect(findings.map((f) => f.ruleId)).toContain("agent/description-missing-trigger");
+  });
+
+  test("agent/model-unset when model is absent", () => {
+    const content =
+      "---\nname: my-agent\ndescription: Use this agent for everything important.\n---\nbody body body\n";
+    const findings = runRules(agent(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("agent/model-unset");
+  });
+});

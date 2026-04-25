@@ -3,6 +3,7 @@ import type { Rule, RuleContext, RuleFinding } from "./types";
 import { parseFrontmatter } from "./rules/shared";
 import { schemaRule } from "./rules/schema";
 import { skillRules } from "./rules/skill";
+import { agentRules } from "./rules/agent";
 
 let REGISTRY: Rule[] = [];
 
@@ -55,3 +56,4 @@ export type { Rule, RuleFinding, Severity, RuleContext } from "./types";
 
 REGISTRY.push(schemaRule);
 REGISTRY.push(...skillRules);
+REGISTRY.push(...agentRules);
