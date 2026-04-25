@@ -3,6 +3,8 @@ import { StateEffect, StateField, type Extension } from "@codemirror/state";
 import { linter, type Diagnostic } from "@codemirror/lint";
 import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
+import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { getSchema, type JsonSchema } from "@/schemas";
 import type { CatalogEntry } from "@/catalog";
 import type { RuleFinding } from "@/lib/lint";
@@ -11,6 +13,19 @@ function jsonExtension(schema: JsonSchema | undefined): Extension[] {
   if (schema) return jsonSchema(schema as never);
   return [json()];
 }
+
+// CodeMirror's defaultHighlightStyle underlines headings (and lang-markdown's
+// frontmatter separators inherit similar treatment), which competes visually
+// with the lint diagnostic squiggles. We override to bold-only.
+const markdownHeadingStyle = HighlightStyle.define([
+  { tag: tags.heading1, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.heading2, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.heading3, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.heading4, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.heading5, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.heading6, fontWeight: "bold", textDecoration: "none" },
+  { tag: tags.contentSeparator, textDecoration: "none" },
+]);
 
 export const setLintFindings = StateEffect.define<RuleFinding[]>();
 
@@ -47,7 +62,11 @@ export function extensionsForEntry(entry: CatalogEntry): Extension[] {
     case "jsonc":
       return jsonExtension(entry.schemaId ? getSchema(entry.schemaId) : undefined);
     case "markdown":
-      return [markdown(), ...lintExtensionForMarkdown()];
+      return [
+        markdown(),
+        syntaxHighlighting(markdownHeadingStyle),
+        ...lintExtensionForMarkdown(),
+      ];
     default:
       return [];
   }
