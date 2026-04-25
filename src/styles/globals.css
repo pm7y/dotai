@@ -143,3 +143,117 @@ body {
 button {
   cursor: pointer;
 }
+
+.markdown-preview {
+  padding: 1rem 1.25rem;
+  color: var(--color-fg);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: none;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+}
+.markdown-preview h1 {
+  font-size: 1.6rem;
+}
+.markdown-preview h2 {
+  font-size: 1.3rem;
+}
+.markdown-preview h3 {
+  font-size: 1.1rem;
+}
+.markdown-preview h4 {
+  font-size: 1rem;
+}
+
+.markdown-preview p,
+.markdown-preview ul,
+.markdown-preview ol {
+  margin: 0.6em 0;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 1.4em;
+}
+
+.markdown-preview li + li {
+  margin-top: 0.2em;
+}
+
+.markdown-preview a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.markdown-preview a:hover {
+  text-decoration: underline;
+}
+
+.markdown-preview code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-bg-muted);
+  color: var(--color-fg);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.markdown-preview pre {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 0.8em 0;
+}
+
+.markdown-preview pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-preview blockquote {
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-fg-muted);
+  margin: 0.8em 0;
+  padding: 0.1em 0 0.1em 1em;
+}
+
+.markdown-preview hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.4em 0;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  width: auto;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--color-border);
+  padding: 0.4em 0.7em;
+  text-align: left;
+}
+
+.markdown-preview tbody tr:nth-child(even) td {
+  background: var(--color-bg-subtle);
+}
+
+.markdown-preview img {
+  max-width: 100%;
+  height: auto;
+}
