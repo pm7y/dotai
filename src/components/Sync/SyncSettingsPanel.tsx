@@ -67,13 +67,14 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
     await saveSyncSettings(next);
   }
 
-  async function updateLabel(value: string) {
+  function updateLabel(value: string) {
     setLabelDraft(value);
-    const fallback = (await hostname()) ?? "machine";
-    const slug = slugify(value || fallback);
+    const slug = slugify(value || "machine");
     const next = { ...settings!, machineLabel: value, machineSlug: slug };
     setSettings(next);
-    await saveSyncSettings(next);
+    void saveSyncSettings(next).catch(() => {
+      // persistence failure is non-fatal for the UI; settings stay in-memory
+    });
   }
 
   async function pushNow() {
@@ -159,7 +160,7 @@ export function SyncSettingsPanel({ onClose }: { onClose: () => void }) {
             <input
               type="text"
               value={labelDraft}
-              onChange={(e) => void updateLabel(e.target.value)}
+              onChange={(e) => updateLabel(e.target.value)}
               placeholder="e.g. Work laptop"
               autoComplete="off"
               autoCorrect="off"
