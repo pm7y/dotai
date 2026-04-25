@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: oklch(0.99 0 0);
+  --color-bg-subtle: oklch(0.97 0 0);
+  --color-bg-muted: oklch(0.94 0 0);
+  --color-fg: oklch(0.21 0 0);
+  --color-fg-muted: oklch(0.45 0 0);
+  --color-border: oklch(0.91 0 0);
+  --color-accent: oklch(0.55 0.18 264);
+  --color-accent-fg: oklch(0.99 0 0);
+  --color-danger: oklch(0.56 0.2 27);
+  --color-warn: oklch(0.71 0.16 73);
+
+  --font-sans: "Inter", "SF Pro Text", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-bg: oklch(0.15 0.005 264);
+    --color-bg-subtle: oklch(0.18 0.005 264);
+    --color-bg-muted: oklch(0.22 0.005 264);
+    --color-fg: oklch(0.95 0 0);
+    --color-fg-muted: oklch(0.65 0 0);
+    --color-border: oklch(0.28 0.005 264);
+    --color-accent: oklch(0.7 0.18 264);
+    --color-accent-fg: oklch(0.15 0 0);
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-fg);
+  background: var(--color-bg);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.cm-editor {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  height: 100%;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
