@@ -2,7 +2,6 @@ mod commands;
 mod error;
 
 use commands::{env, files, paths, scan, search, watch};
-use tauri::Emitter;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,9 +12,9 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(watch::WatcherState::default())
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(target_os = "macos")]
-            install_macos_menu(app)?;
+            install_macos_menu(_app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -38,6 +37,7 @@ pub fn run() {
 #[cfg(target_os = "macos")]
 fn install_macos_menu(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
+    use tauri::Emitter;
 
     let about = MenuItemBuilder::with_id("about-dotai", "About dotai").build(app)?;
     let app_submenu = SubmenuBuilder::new(app, "dotai")

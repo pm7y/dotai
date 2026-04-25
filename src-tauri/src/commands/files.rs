@@ -161,6 +161,8 @@ pub struct WriteRequest {
     pub path: String,
     pub content: String,
     pub line_ending: Option<String>,
+    // Unix file mode bits; only consumed under #[cfg(unix)] in write_file.
+    #[cfg_attr(not(unix), allow(dead_code))]
     pub mode: Option<u32>,
     pub backup_dir: Option<String>,
 }
