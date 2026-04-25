@@ -1,6 +1,6 @@
 # Architecture
 
-aifiles is a Tauri 2 desktop app: a thin Rust shell + a React frontend. The frontend owns the UI and the catalog (single source of truth for known config locations); the Rust side provides safe IO, watching, search, and env enumeration.
+dotai is a Tauri 2 desktop app: a thin Rust shell + a React frontend. The frontend owns the UI and the catalog (single source of truth for known config locations); the Rust side provides safe IO, watching, search, and env enumeration.
 
 ## Layers
 
@@ -41,7 +41,7 @@ aifiles is a Tauri 2 desktop app: a thin Rust shell + a React frontend. The fron
 ## Conflict-resolution flow
 
 1. When a file opens, the renderer asks the Rust watcher to start watching the file's parent dir.
-2. The Rust watcher emits a debounced `aifiles://watch` event when anything in that dir changes.
+2. The Rust watcher emits a debounced `dotai://watch` event when anything in that dir changes.
 3. The renderer reloads the file from disk:
    - Same content → silently update mtime.
    - Different + buffer clean → silently swap.

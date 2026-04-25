@@ -188,7 +188,7 @@ pub fn write_file(req: WriteRequest) -> AppResult<WriteResult> {
     };
 
     let mut tmp = tempfile::Builder::new()
-        .prefix(".aifiles-")
+        .prefix(".dotai-")
         .suffix(".tmp")
         .tempfile_in(parent)?;
     tmp.write_all(normalized.as_bytes())?;

@@ -61,7 +61,7 @@ pub fn start_watch(
                         paths,
                         kind,
                     };
-                    let _ = app_for_callback.emit("aifiles://watch", payload);
+                    let _ = app_for_callback.emit("dotai://watch", payload);
                 }
             }
         },

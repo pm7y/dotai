@@ -1,4 +1,4 @@
-# aifiles
+# dotai
 
 A cross-platform desktop app that lists, edits, watches, and searches every Claude Code, Claude Desktop, and Copilot CLI configuration file across global and project scopes — in one place.
 
@@ -54,5 +54,5 @@ No telemetry, ever.
 ## Platform notes
 
 - **macOS**: Reading `~/Library/Application Support/Claude/` may require Full Disk Access on some macOS versions. The app shows a friendly error if denied.
-- **macOS notarization** is skipped for v1 (Apple Developer fee). Use `xattr -d com.apple.quarantine /Applications/aifiles.app` after install if Gatekeeper blocks launch.
+- **macOS notarization** is skipped for v1 (Apple Developer fee). Use `xattr -d com.apple.quarantine /Applications/dotai.app` after install if Gatekeeper blocks launch.
 - **Windows code signing** is skipped for v1. SmartScreen will warn on first launch — click "More info" → "Run anyway".

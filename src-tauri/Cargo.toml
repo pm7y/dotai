@@ -1,5 +1,5 @@
 [package]
-name = "aifiles"
+name = "dotai"
 version = "0.1.0"
 description = "Cross-platform AI config manager"
 authors = ["Paul McIlreavy"]
@@ -7,7 +7,7 @@ edition = "2021"
 rust-version = "1.78"
 
 [lib]
-name = "aifiles_lib"
+name = "dotai_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

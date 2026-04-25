@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "aifiles",
+  "productName": "dotai",
   "version": "0.1.0",
-  "identifier": "dev.mcilreavy.aifiles",
+  "identifier": "dev.mcilreavy.dotai",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "aifiles",
+        "title": "dotai",
         "width": 1280,
         "height": 800,
         "minWidth": 800,

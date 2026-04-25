@@ -40,7 +40,7 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "aifiles ${{ github.ref_name }}"
+          releaseName: "dotai ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

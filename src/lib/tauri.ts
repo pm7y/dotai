@@ -154,5 +154,5 @@ export async function stopWatch(watchId: string): Promise<void> {
 export async function onWatchEvent(
   handler: (e: WatchEvent) => void,
 ): Promise<UnlistenFn> {
-  return listen<WatchEvent>("aifiles://watch", (ev) => handler(camel(ev.payload)));
+  return listen<WatchEvent>("dotai://watch", (ev) => handler(camel(ev.payload)));
 }

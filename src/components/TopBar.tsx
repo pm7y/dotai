@@ -58,7 +58,7 @@ export function TopBar() {
   return (
     <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-(--color-border) bg-(--color-bg-subtle) px-3">
       <div className="flex items-center gap-2">
-        <span className="text-[12px] font-semibold tracking-tight">aifiles</span>
+        <span className="text-[12px] font-semibold tracking-tight">dotai</span>
         <span className="text-[11px] text-(--color-fg-muted)">v0.1.0</span>
       </div>
       <div className="flex items-center gap-2">
