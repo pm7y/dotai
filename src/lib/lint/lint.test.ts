@@ -246,3 +246,40 @@ describe("agent rules", () => {
     expect(findings.map((f) => f.ruleId)).toContain("agent/model-unset");
   });
 });
+
+describe("command rules", () => {
+  const cmd = () => entryById("cc.user.commands")!;
+  const path = "/u/.claude/commands/foo.md";
+
+  test("command/missing-description when description absent", () => {
+    const content = "---\n---\nBody using $1\n";
+    const findings = runRules(cmd(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("command/missing-description");
+  });
+
+  test("command/description-too-short when < 20 chars", () => {
+    const content = "---\ndescription: small\n---\nBody $ARGUMENTS\n";
+    const findings = runRules(cmd(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("command/description-too-short");
+  });
+
+  test("command/invalid-tool against allowed-tools", () => {
+    const content =
+      "---\ndescription: Run something useful for the team\nallowed-tools: [Read, Bogus]\n---\nbody\n";
+    const findings = runRules(cmd(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("command/invalid-tool");
+  });
+
+  test("command/argument-hint-mismatch when body uses $1 but no argument-hint", () => {
+    const content = "---\ndescription: Process the input data thoroughly\n---\nUse $1\n";
+    const findings = runRules(cmd(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("command/argument-hint-mismatch");
+  });
+
+  test("command/argument-hint-mismatch when argument-hint set but body has no $args", () => {
+    const content =
+      "---\ndescription: Process the input data thoroughly\nargument-hint: <thing>\n---\nNo args used\n";
+    const findings = runRules(cmd(), content, path);
+    expect(findings.map((f) => f.ruleId)).toContain("command/argument-hint-mismatch");
+  });
+});
