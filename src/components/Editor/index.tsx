@@ -11,7 +11,8 @@ import { conflictAtom } from "@/state/watcher";
 import { readFile, writeFile, onWatchEvent } from "@/lib/tauri";
 import { openDocs } from "@/lib/docs-links";
 import { getSessionBackupDir, isReadOnlyByPath, shouldBackupNow } from "@/lib/backup";
-import { extensionsForEntry } from "@/lib/editor-extensions";
+import { extensionsForEntry, setLintFindings } from "@/lib/editor-extensions";
+import { diagnosticsAtom } from "@/state/lint";
 import { isAlwaysPromptPath, watchPath } from "@/lib/watcher";
 import { EnvVarsPanel } from "@/components/EnvVarsPanel";
 import { viewModeAtom } from "@/state/viewMode";
@@ -143,13 +144,19 @@ export function Editor() {
     [filePath, setBuffers],
   );
 
+  const findings = useAtomValue(diagnosticsAtom);
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({ effects: setLintFindings.of(findings) });
+  }, [findings]);
+
   const editable = !!filePath && !isPluginReadOnly;
 
   const extensions = useMemo<Extension[]>(() => {
     if (!entry) return [];
     return [
       basicSetup,
-      ...extensionsForEntry(entry, filePath ?? ""),
+      ...extensionsForEntry(entry),
       EditorState.readOnly.of(!editable),
       EditorView.editable.of(editable),
       EditorView.lineWrapping,
@@ -169,7 +176,7 @@ export function Editor() {
         },
       ]),
     ];
-  }, [entry, editable, onChange, save, filePath]);
+  }, [entry, editable, onChange, save]);
 
   useEffect(() => {
     if (isEnv || !filePath || !entry) return;
