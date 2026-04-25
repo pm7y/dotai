@@ -172,7 +172,7 @@ export function FileList() {
       {error && <p className="p-3 text-xs text-(--color-danger)">Error: {error}</p>}
 
       {!needsProject && !loading && items.length > 0 && (
-        <ul className="overflow-y-auto">
+        <ul className="flex-1 overflow-y-auto">
           {items.map((item, idx) => {
             const isSelected = selection.filePath === item.absPath;
             const label = item.childName ?? item.entry.label;
@@ -213,7 +213,7 @@ export function FileList() {
       )}
 
       {!needsProject && !loading && items.length === 0 && candidates.length > 0 && (
-        <div className="overflow-y-auto p-3">
+        <div className="flex-1 overflow-y-auto p-3">
           <p className="mb-2 text-xs text-(--color-fg-muted)">
             No files yet. Possible locations:
           </p>
