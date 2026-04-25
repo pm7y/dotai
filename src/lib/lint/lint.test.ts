@@ -99,3 +99,43 @@ describe("runRules: aggregation", () => {
     }
   });
 });
+
+describe("schema rule", () => {
+  test("flags missing required name on a skill", () => {
+    const entry = entryById("cc.user.skills");
+    if (!entry) throw new Error("fixture entry missing");
+    const content = "---\ndescription: present\n---\nbody\n";
+    const findings = runRules(entry, content, "/u/.claude/skills/foo/SKILL.md");
+    const ids = findings.map((f) => f.ruleId);
+    expect(ids).toContain("skills/missing-required");
+  });
+
+  test("flags unknown property on agent frontmatter", () => {
+    const entry = entryById("cc.user.agents");
+    if (!entry) throw new Error("fixture entry missing");
+    const content =
+      "---\nname: foo\ndescription: bar baz qux\nbogus: x\n---\nbody\n";
+    const findings = runRules(entry, content, "/u/.claude/agents/foo.md");
+    const ids = findings.map((f) => f.ruleId);
+    expect(ids).toContain("agents/schema-violation");
+  });
+
+  test("emits no schema findings for valid skill frontmatter", () => {
+    const entry = entryById("cc.user.skills");
+    if (!entry) throw new Error("fixture entry missing");
+    const content = "---\nname: foo\ndescription: a valid skill\n---\nbody\n";
+    const findings = runRules(entry, content, "/u/.claude/skills/foo/SKILL.md");
+    const schemaFindings = findings.filter((f) => f.ruleId.includes("schema") || f.ruleId.endsWith("missing-required"));
+    expect(schemaFindings).toEqual([]);
+  });
+
+  test("does not run for entries without frontmatterSchemaId", () => {
+    const entry = entryById("cc.user.memory");
+    if (!entry) throw new Error("fixture entry missing");
+    const findings = runRules(entry, "# memory body\n", "/u/.claude/CLAUDE.md");
+    const schemaFindings = findings.filter((f) =>
+      f.ruleId.endsWith("schema-violation") || f.ruleId.endsWith("missing-required"),
+    );
+    expect(schemaFindings).toEqual([]);
+  });
+});
