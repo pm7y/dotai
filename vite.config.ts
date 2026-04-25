@@ -19,4 +19,29 @@ export default defineConfig(async () => ({
     hmr: host ? { protocol: "ws", host, port: 1421 } : undefined,
     watch: { ignored: ["**/src-tauri/**"] },
   },
+  build: {
+    target: "es2022",
+    sourcemap: false,
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          codemirror: [
+            "codemirror",
+            "@codemirror/state",
+            "@codemirror/view",
+            "@codemirror/commands",
+            "@codemirror/language",
+            "@codemirror/search",
+            "@codemirror/autocomplete",
+            "@codemirror/lint",
+            "@codemirror/lang-json",
+            "@codemirror/lang-markdown",
+            "@codemirror/lang-yaml",
+          ],
+          schema: ["codemirror-json-schema", "ajv", "ajv-formats", "yaml"],
+        },
+      },
+    },
+  },
 }));

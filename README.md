@@ -18,6 +18,14 @@ Built with Tauri 2 (Rust shell ~5–10 MB binary) + React 18 + TypeScript + Vite
 
 Diff/compare scopes view, schema-aware form editor, organisation-managed paths, code signing/notarization, auto-update, shell-profile env editing.
 
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl+S` | Save the active buffer (atomic write + backup-on-first-edit) |
+| `Cmd/Ctrl+K` | Open the cross-config search modal |
+| `Esc` | Close any open modal (search, projects, conflict) |
+
 ## Development
 
 Requirements: Rust 1.78+, Node 22+, pnpm 10+.
