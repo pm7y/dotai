@@ -1,7 +1,7 @@
 mod commands;
 mod error;
 
-use commands::{env, files, paths, search, watch};
+use commands::{env, files, paths, scan, search, watch};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,6 +21,7 @@ pub fn run() {
             watch::start_watch,
             watch::stop_watch,
             search::search_files,
+            scan::scan_projects,
             env::read_env_vars,
         ])
         .run(tauri::generate_context!())

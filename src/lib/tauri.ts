@@ -54,6 +54,11 @@ export type SearchHit = {
   text: string;
 };
 
+export type ScanResult = {
+  path: string;
+  matches: string[];
+};
+
 export type WatchEvent = {
   watchId: string;
   paths: string[];
@@ -125,6 +130,13 @@ export async function searchFiles(args: {
   regex?: boolean;
 }): Promise<SearchHit[]> {
   return camel(await invoke("search_files", { req: snake(args) }));
+}
+
+export async function scanProjects(args: {
+  root: string;
+  maxDepth?: number;
+}): Promise<ScanResult[]> {
+  return camel(await invoke("scan_projects", { req: snake(args) }));
 }
 
 export async function startWatch(args: {
