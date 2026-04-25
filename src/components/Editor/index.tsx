@@ -146,6 +146,10 @@ export function Editor() {
   );
 
   const findings = useAtomValue(diagnosticsAtom);
+  const findingsRef = useRef(findings);
+  useEffect(() => {
+    findingsRef.current = findings;
+  }, [findings]);
   useEffect(() => {
     if (!viewRef.current) return;
     viewRef.current.dispatch({ effects: setLintFindings.of(findings) });
@@ -245,6 +249,13 @@ export function Editor() {
       state,
       parent: containerRef.current,
     });
+    // Seed the linter with current findings — without this, the gutter is empty
+    // on initial file open until the first keystroke triggers a recompute.
+    if (findingsRef.current.length > 0) {
+      viewRef.current.dispatch({
+        effects: setLintFindings.of(findingsRef.current),
+      });
+    }
     return () => {
       viewRef.current?.destroy();
       viewRef.current = null;
