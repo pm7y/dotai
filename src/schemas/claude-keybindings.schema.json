@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "claude-keybindings",
+  "title": "Claude Code keybindings",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "command": { "type": "string" },
+          "when": { "type": "string" },
+          "args": {}
+        },
+        "required": ["key", "command"]
+      }
+    }
+  }
+}

@@ -4,14 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState, type Extension } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
-import { json } from "@codemirror/lang-json";
-import { markdown } from "@codemirror/lang-markdown";
 import { entryById } from "@/catalog";
 import { selectionAtom } from "@/state/selection";
 import { buffersAtom } from "@/state/buffers";
 import { readFile, writeFile } from "@/lib/tauri";
 import { openDocs } from "@/lib/docs-links";
 import { getSessionBackupDir, isReadOnlyByPath, shouldBackupNow } from "@/lib/backup";
+import { extensionsForEntry } from "@/lib/editor-extensions";
 import { EnvVarsPanel } from "@/components/EnvVarsPanel";
 
 type LoadState =
@@ -25,18 +24,6 @@ type SaveState =
   | { status: "saving" }
   | { status: "saved"; at: number }
   | { status: "error"; message: string };
-
-function languageExtension(language: string): Extension[] {
-  switch (language) {
-    case "json":
-    case "jsonc":
-      return [json()];
-    case "markdown":
-      return [markdown()];
-    default:
-      return [];
-  }
-}
 
 export function Editor() {
   const selection = useAtomValue(selectionAtom);
@@ -135,7 +122,7 @@ export function Editor() {
     if (!entry) return [];
     return [
       basicSetup,
-      ...languageExtension(entry.language),
+      ...extensionsForEntry(entry),
       EditorState.readOnly.of(!editable),
       EditorView.editable.of(editable),
       EditorView.lineWrapping,

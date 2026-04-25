@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "command-frontmatter",
+  "title": "Claude Code slash-command frontmatter",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "description": { "type": "string" },
+    "argument-hint": { "type": "string" },
+    "allowed-tools": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "model": {
+      "type": "string",
+      "enum": ["sonnet", "opus", "haiku", "inherit"]
+    }
+  }
+}
