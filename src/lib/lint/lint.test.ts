@@ -139,3 +139,53 @@ describe("schema rule", () => {
     expect(schemaFindings).toEqual([]);
   });
 });
+
+describe("skill rules", () => {
+  const skill = () => entryById("cc.user.skills")!;
+  const path = "/u/.claude/skills/foo-bar/SKILL.md";
+  const fm = (extra: Record<string, string>) =>
+    "---\n" +
+    Object.entries({ name: "foo-bar", description: "Use when foo bar baz qux quux corge.", ...extra })
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n") +
+    "\n---\n";
+  const body = "## Body\n".padEnd(150, "x");
+
+  test("skill/name-mismatch when name != parent directory", () => {
+    const findings = runRules(skill(), fm({ name: "wrong" }) + body, path);
+    expect(findings.map((f) => f.ruleId)).toContain("skill/name-mismatch");
+  });
+
+  test("no skill/name-mismatch when name == parent directory", () => {
+    const findings = runRules(skill(), fm({}) + body, path);
+    expect(findings.map((f) => f.ruleId)).not.toContain("skill/name-mismatch");
+  });
+
+  test("skill/description-too-short when description < 40 chars", () => {
+    const findings = runRules(skill(), fm({ description: "Short." }) + body, path);
+    expect(findings.map((f) => f.ruleId)).toContain("skill/description-too-short");
+  });
+
+  test("skill/description-leading-anti-pattern flags 'This skill…'", () => {
+    const findings = runRules(
+      skill(),
+      fm({ description: "This skill does the thing for sure now." }) + body,
+      path,
+    );
+    expect(findings.map((f) => f.ruleId)).toContain("skill/description-leading-anti-pattern");
+  });
+
+  test("skill/description-missing-trigger flags description without 'use when' / 'use this' / 'triggers when'", () => {
+    const findings = runRules(
+      skill(),
+      fm({ description: "Some description that is long enough but no trigger words at all." }) + body,
+      path,
+    );
+    expect(findings.map((f) => f.ruleId)).toContain("skill/description-missing-trigger");
+  });
+
+  test("skill/body-empty when body < 100 chars", () => {
+    const findings = runRules(skill(), fm({}) + "tiny\n", path);
+    expect(findings.map((f) => f.ruleId)).toContain("skill/body-empty");
+  });
+});

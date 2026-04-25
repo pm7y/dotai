@@ -2,6 +2,7 @@ import type { CatalogEntry } from "@/catalog";
 import type { Rule, RuleContext, RuleFinding } from "./types";
 import { parseFrontmatter } from "./rules/shared";
 import { schemaRule } from "./rules/schema";
+import { skillRules } from "./rules/skill";
 
 let REGISTRY: Rule[] = [];
 
@@ -53,3 +54,4 @@ export function registerRules(rules: Rule[]): void {
 export type { Rule, RuleFinding, Severity, RuleContext } from "./types";
 
 REGISTRY.push(schemaRule);
+REGISTRY.push(...skillRules);
