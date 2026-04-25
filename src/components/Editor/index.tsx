@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ExternalLink, Save, RotateCcw, Lock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorView, basicSetup } from "codemirror";
@@ -7,10 +7,12 @@ import { keymap } from "@codemirror/view";
 import { entryById } from "@/catalog";
 import { selectionAtom } from "@/state/selection";
 import { buffersAtom } from "@/state/buffers";
-import { readFile, writeFile } from "@/lib/tauri";
+import { conflictAtom } from "@/state/watcher";
+import { readFile, writeFile, onWatchEvent } from "@/lib/tauri";
 import { openDocs } from "@/lib/docs-links";
 import { getSessionBackupDir, isReadOnlyByPath, shouldBackupNow } from "@/lib/backup";
 import { extensionsForEntry } from "@/lib/editor-extensions";
+import { isAlwaysPromptPath, watchPath } from "@/lib/watcher";
 import { EnvVarsPanel } from "@/components/EnvVarsPanel";
 
 type LoadState =
@@ -28,6 +30,7 @@ type SaveState =
 export function Editor() {
   const selection = useAtomValue(selectionAtom);
   const [buffers, setBuffers] = useAtom(buffersAtom);
+  const setConflict = useSetAtom(conflictAtom);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "idle" });
@@ -212,6 +215,90 @@ export function Editor() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [save]);
+
+  // start watching the file's parent dir when opened
+  useEffect(() => {
+    if (!filePath || isEnv) return;
+    void watchPath(filePath);
+  }, [filePath, isEnv]);
+
+  // listen for external changes
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    void onWatchEvent((ev) => {
+      for (const changedPath of ev.paths) {
+        const target = buffers[changedPath];
+        if (!target) continue;
+        const isOurOwnSave = ev.kind.includes("Modify");
+        void readFile(changedPath)
+          .then((res) => {
+            if (
+              res.mtimeMs &&
+              target.externalMtimeMs &&
+              res.mtimeMs <= target.externalMtimeMs
+            ) {
+              return;
+            }
+            if (res.content === target.currentContent) {
+              setBuffers((prev) => {
+                const existing = prev[changedPath];
+                if (!existing) return prev;
+                return {
+                  ...prev,
+                  [changedPath]: {
+                    ...existing,
+                    externalMtimeMs: res.mtimeMs,
+                  },
+                };
+              });
+              return;
+            }
+            const alwaysPrompt = isAlwaysPromptPath(changedPath);
+            if (target.dirty || alwaysPrompt) {
+              setConflict({
+                filePath: changedPath,
+                externalContent: res.content,
+                externalMtimeMs: res.mtimeMs ?? null,
+                alwaysPrompt,
+              });
+              return;
+            }
+            setBuffers((prev) => {
+              const existing = prev[changedPath];
+              if (!existing) return prev;
+              return {
+                ...prev,
+                [changedPath]: {
+                  ...existing,
+                  originalContent: res.content,
+                  currentContent: res.content,
+                  dirty: false,
+                  externalMtimeMs: res.mtimeMs,
+                },
+              };
+            });
+            if (viewRef.current && filePath === changedPath) {
+              viewRef.current.dispatch({
+                changes: {
+                  from: 0,
+                  to: viewRef.current.state.doc.length,
+                  insert: res.content,
+                },
+              });
+            }
+          })
+          .catch(() => {
+            // file may have been deleted; ignore
+          });
+        void isOurOwnSave;
+      }
+    }).then((un) => {
+      unlisten = un;
+    });
+    return () => {
+      unlisten?.();
+    };
+  }, [buffers, filePath, setBuffers, setConflict]);
 
   if (!entry) {
     return (

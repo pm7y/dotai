@@ -2,6 +2,7 @@ import { TopBar } from "@/components/TopBar";
 import { Sidebar } from "@/components/Sidebar";
 import { FileList } from "@/components/FileList";
 import { Editor } from "@/components/Editor";
+import { ConflictDialog } from "@/components/ConflictDialog";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <FileList />
         <Editor />
       </div>
+      <ConflictDialog />
     </div>
   );
 }
