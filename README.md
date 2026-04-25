@@ -14,6 +14,14 @@ Built with Tauri 2 (Rust shell ~5–10 MB binary) + React 18 + TypeScript + Vite
 - **M5** Search + Projects + Env vars — Cmd/Ctrl+K cross-config search, project picker + auto-scan, env panel.
 - **M6** Polish + ship — icon, shortcuts, error toasts, unsigned macOS universal + Windows x64 release.
 
+## Cloud sync (read-only)
+
+dotai can write a snapshot of your tracked configs to any folder you already sync (OneDrive, Dropbox, iCloud, Syncthing, a git repo on a NAS). Other dotai installs pointing at the same folder can browse those snapshots read-only — no apply, no merge.
+
+Excluded by design: env-var values (secrets), `~/.claude.json` (rewrites itself), and `*.local` files (gitignored on purpose).
+
+Configure under **Cloud Sync** in the top bar.
+
 ## Out of scope for v1
 
 Diff/compare scopes view, schema-aware form editor, organisation-managed paths, code signing/notarization, auto-update, shell-profile env editing.

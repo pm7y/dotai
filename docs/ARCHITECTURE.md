@@ -37,6 +37,7 @@ dotai is a Tauri 2 desktop app: a thin Rust shell + a React frontend. The fronte
 | `src-tauri/src/commands/env.rs` | Env-var enumeration with secret masking |
 | `src-tauri/src/commands/scan.rs` | Project auto-scan (looks for `.claude/`, `.mcp.json`, etc.) |
 | `src/components/Editor/index.tsx` | CodeMirror wrapper, schema integration, dirty tracking, keymap |
+| `src/sync/index.ts` | Cloud-sync public API; pluggable provider abstraction |
 
 ## Conflict-resolution flow
 
