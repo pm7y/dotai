@@ -46,14 +46,98 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.cm-editor {
+.cm-editor,
+.cm-editor .cm-content,
+.cm-editor .cm-gutters {
   font-family: var(--font-mono);
-  font-size: 13px;
+}
+
+.cm-editor {
   height: 100%;
+  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-fg);
 }
 
 .cm-editor.cm-focused {
   outline: none;
+}
+
+.cm-editor .cm-scroller {
+  font-family: var(--font-mono);
+  line-height: 1.55;
+}
+
+.cm-editor .cm-content {
+  caret-color: var(--color-accent);
+  padding: 8px 0;
+}
+
+.cm-editor .cm-cursor,
+.cm-editor .cm-dropCursor {
+  border-left-color: var(--color-accent);
+}
+
+.cm-editor .cm-gutters {
+  background: var(--color-bg-subtle);
+  color: var(--color-fg-muted);
+  border-right: 1px solid var(--color-border);
+  font-size: 11px;
+  user-select: none;
+}
+
+.cm-editor .cm-lineNumbers .cm-gutterElement {
+  padding: 0 10px 0 6px;
+  min-width: 28px;
+  text-align: right;
+}
+
+.cm-editor .cm-activeLine {
+  background: color-mix(in oklab, var(--color-bg-subtle) 60%, transparent);
+}
+
+.cm-editor .cm-activeLineGutter {
+  background: var(--color-bg-muted);
+  color: var(--color-fg);
+}
+
+.cm-editor .cm-foldGutter {
+  color: var(--color-fg-muted);
+  opacity: 0.6;
+}
+
+.cm-editor .cm-selectionBackground,
+.cm-editor.cm-focused .cm-selectionBackground,
+.cm-editor ::selection {
+  background: color-mix(in oklab, var(--color-accent) 25%, transparent) !important;
+}
+
+.cm-editor .cm-tooltip {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+
+.cm-editor .cm-diagnostic {
+  border-left: 3px solid var(--color-danger);
+  padding: 4px 8px;
+  font-family: var(--font-sans);
+}
+
+.cm-editor .cm-diagnostic-warning {
+  border-left-color: var(--color-warn);
+}
+
+.cm-editor .cm-panels {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
+  color: var(--color-fg);
+}
+
+.cm-editor .cm-searchMatch {
+  background: color-mix(in oklab, var(--color-warn) 35%, transparent);
 }
 
 button {
