@@ -63,3 +63,7 @@ export function findKeyLine(
   if (idx === -1) return yamlStartLine;
   return yamlStartLine + idx;
 }
+
+export function extractYaml(content: string): string {
+  return content.match(FRONTMATTER_RE)?.[1] ?? "";
+}

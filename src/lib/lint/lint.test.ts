@@ -113,8 +113,7 @@ describe("schema rule", () => {
   test("flags unknown property on agent frontmatter", () => {
     const entry = entryById("cc.user.agents");
     if (!entry) throw new Error("fixture entry missing");
-    const content =
-      "---\nname: foo\ndescription: bar baz qux\nbogus: x\n---\nbody\n";
+    const content = "---\nname: foo\ndescription: bar baz qux\nbogus: x\n---\nbody\n";
     const findings = runRules(entry, content, "/u/.claude/agents/foo.md");
     const ids = findings.map((f) => f.ruleId);
     expect(ids).toContain("agents/schema-violation");
@@ -125,7 +124,9 @@ describe("schema rule", () => {
     if (!entry) throw new Error("fixture entry missing");
     const content = "---\nname: foo\ndescription: a valid skill\n---\nbody\n";
     const findings = runRules(entry, content, "/u/.claude/skills/foo/SKILL.md");
-    const schemaFindings = findings.filter((f) => f.ruleId.includes("schema") || f.ruleId.endsWith("missing-required"));
+    const schemaFindings = findings.filter(
+      (f) => f.ruleId.includes("schema") || f.ruleId.endsWith("missing-required"),
+    );
     expect(schemaFindings).toEqual([]);
   });
 
@@ -133,8 +134,9 @@ describe("schema rule", () => {
     const entry = entryById("cc.user.memory");
     if (!entry) throw new Error("fixture entry missing");
     const findings = runRules(entry, "# memory body\n", "/u/.claude/CLAUDE.md");
-    const schemaFindings = findings.filter((f) =>
-      f.ruleId.endsWith("schema-violation") || f.ruleId.endsWith("missing-required"),
+    const schemaFindings = findings.filter(
+      (f) =>
+        f.ruleId.endsWith("schema-violation") || f.ruleId.endsWith("missing-required"),
     );
     expect(schemaFindings).toEqual([]);
   });
@@ -145,7 +147,11 @@ describe("skill rules", () => {
   const path = "/u/.claude/skills/foo-bar/SKILL.md";
   const fm = (extra: Record<string, string>) =>
     "---\n" +
-    Object.entries({ name: "foo-bar", description: "Use when foo bar baz qux quux corge.", ...extra })
+    Object.entries({
+      name: "foo-bar",
+      description: "Use when foo bar baz qux quux corge.",
+      ...extra,
+    })
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n") +
     "\n---\n";
@@ -172,16 +178,23 @@ describe("skill rules", () => {
       fm({ description: "This skill does the thing for sure now." }) + body,
       path,
     );
-    expect(findings.map((f) => f.ruleId)).toContain("skill/description-leading-anti-pattern");
+    expect(findings.map((f) => f.ruleId)).toContain(
+      "skill/description-leading-anti-pattern",
+    );
   });
 
   test("skill/description-missing-trigger flags description without 'use when' / 'use this' / 'triggers when'", () => {
     const findings = runRules(
       skill(),
-      fm({ description: "Some description that is long enough but no trigger words at all." }) + body,
+      fm({
+        description:
+          "Some description that is long enough but no trigger words at all.",
+      }) + body,
       path,
     );
-    expect(findings.map((f) => f.ruleId)).toContain("skill/description-missing-trigger");
+    expect(findings.map((f) => f.ruleId)).toContain(
+      "skill/description-missing-trigger",
+    );
   });
 
   test("skill/body-empty when body < 100 chars", () => {
@@ -233,10 +246,14 @@ describe("agent rules", () => {
   test("agent/description-missing-trigger when no 'use this agent' / 'use when'", () => {
     const findings = runRules(
       agent(),
-      fm({ description: "Performs operations on the data store with all of the things." }),
+      fm({
+        description: "Performs operations on the data store with all of the things.",
+      }),
       path,
     );
-    expect(findings.map((f) => f.ruleId)).toContain("agent/description-missing-trigger");
+    expect(findings.map((f) => f.ruleId)).toContain(
+      "agent/description-missing-trigger",
+    );
   });
 
   test("agent/model-unset when model is absent", () => {
@@ -271,7 +288,8 @@ describe("command rules", () => {
   });
 
   test("command/argument-hint-mismatch when body uses $1 but no argument-hint", () => {
-    const content = "---\ndescription: Process the input data thoroughly\n---\nUse $1\n";
+    const content =
+      "---\ndescription: Process the input data thoroughly\n---\nUse $1\n";
     const findings = runRules(cmd(), content, path);
     expect(findings.map((f) => f.ruleId)).toContain("command/argument-hint-mismatch");
   });

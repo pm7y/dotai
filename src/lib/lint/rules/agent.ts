@@ -1,15 +1,11 @@
 import type { Rule, RuleFinding } from "../types";
-import { findKeyLine } from "./shared";
+import { findKeyLine, extractYaml } from "./shared";
 import { isKnownTool } from "../tool-names";
 
 const TRIGGER_RE = /\b(use\s+this\s+agent|use\s+when|triggers?\s+when)\b/i;
 
 function appliesToAgents(entry: { category: string }) {
   return entry.category === "agents";
-}
-
-function getYaml(content: string): string {
-  return content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)?.[1] ?? "";
 }
 
 function basenameNoExt(filePath: string): string {
@@ -44,7 +40,7 @@ export const agentRules: Rule[] = [
           ruleId: "agent/name-mismatch",
           severity: "error",
           message: `Agent name '${name}' does not match filename '${basename}.md'.`,
-          line: findKeyLine(getYaml(ctx.content), "name", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "name", ctx.yamlStartLine),
         },
       ];
     },
@@ -55,7 +51,7 @@ export const agentRules: Rule[] = [
     appliesTo: appliesToAgents,
     run: (ctx): RuleFinding[] => {
       const tools = toolList(ctx.frontmatter ?? {});
-      const yaml = getYaml(ctx.content);
+      const yaml = extractYaml(ctx.content);
       const toolsLine = findKeyLine(yaml, "tools", ctx.yamlStartLine);
       const invalid = tools.filter((t) => !isKnownTool(t));
       return invalid.map((t) => ({
@@ -78,7 +74,7 @@ export const agentRules: Rule[] = [
           ruleId: "agent/description-too-short",
           severity: "warning",
           message: `Description is ${desc.length} chars. Short descriptions trigger less reliably.`,
-          line: findKeyLine(getYaml(ctx.content), "description", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "description", ctx.yamlStartLine),
         },
       ];
     },
@@ -95,7 +91,7 @@ export const agentRules: Rule[] = [
           ruleId: "agent/description-missing-trigger",
           severity: "warning",
           message: `Description has no trigger phrase ('Use this agent…' / 'Use when…' / 'Triggers when…').`,
-          line: findKeyLine(getYaml(ctx.content), "description", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "description", ctx.yamlStartLine),
         },
       ];
     },

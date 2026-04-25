@@ -1,15 +1,11 @@
 import type { Rule } from "../types";
-import { findKeyLine } from "./shared";
+import { findKeyLine, extractYaml } from "./shared";
 
 const TRIGGER_RE = /\b(use\s+when|use\s+this|triggers?\s+when)\b/i;
 const ANTIPATTERN_RE = /^(this\s+skill|a\s+skill\s+that)\b/i;
 
 function appliesToSkills(entry: { category: string }) {
   return entry.category === "skills";
-}
-
-function getYaml(content: string): string {
-  return content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)?.[1] ?? "";
 }
 
 function parentDirName(filePath: string): string {
@@ -34,7 +30,7 @@ export const skillRules: Rule[] = [
           ruleId: "skill/name-mismatch",
           severity: "error",
           message: `Skill name '${name}' does not match parent directory '${parent}'. Skills are loaded by directory; this will break invocation.`,
-          line: findKeyLine(getYaml(ctx.content), "name", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "name", ctx.yamlStartLine),
         },
       ];
     },
@@ -51,7 +47,7 @@ export const skillRules: Rule[] = [
           ruleId: "skill/description-too-short",
           severity: "warning",
           message: `Description is ${desc.length} chars. Anthropic's own skills cluster around 80-200 chars; very short descriptions don't trigger reliably.`,
-          line: findKeyLine(getYaml(ctx.content), "description", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "description", ctx.yamlStartLine),
         },
       ];
     },
@@ -68,7 +64,7 @@ export const skillRules: Rule[] = [
           ruleId: "skill/description-leading-anti-pattern",
           severity: "warning",
           message: `Description starts with passive framing ('This skill…' / 'A skill that…'). Lead with action ('Use when…').`,
-          line: findKeyLine(getYaml(ctx.content), "description", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "description", ctx.yamlStartLine),
         },
       ];
     },
@@ -85,7 +81,7 @@ export const skillRules: Rule[] = [
           ruleId: "skill/description-missing-trigger",
           severity: "warning",
           message: `Description has no trigger phrase ('Use when…' / 'Use this…' / 'Triggers when…'). Trigger phrases help the skill activate reliably.`,
-          line: findKeyLine(getYaml(ctx.content), "description", ctx.yamlStartLine),
+          line: findKeyLine(extractYaml(ctx.content), "description", ctx.yamlStartLine),
         },
       ];
     },

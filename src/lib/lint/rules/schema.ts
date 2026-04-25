@@ -2,7 +2,7 @@ import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 import { getSchema } from "@/schemas";
 import type { Rule, RuleFinding } from "../types";
-import { findKeyLine } from "./shared";
+import { findKeyLine, extractYaml } from "./shared";
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -78,9 +78,4 @@ function formatAjvError(err: ErrorObject): string {
     default:
       return `${path}: ${err.message ?? "validation failed"}`;
   }
-}
-
-function extractYaml(content: string): string {
-  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  return m?.[1] ?? "";
 }
