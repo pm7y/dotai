@@ -181,78 +181,88 @@ export function FileList() {
       )}
       {error && <p className="p-3 text-xs text-(--color-danger)">Error: {error}</p>}
 
-      {!needsProject && !loading && items.length > 0 && (
-        <ul className="flex-1 overflow-y-auto">
-          {items.map((item, idx) => {
-            const isSelected = selection.filePath === item.absPath;
-            const label = item.childName ?? item.entry.label;
-            return (
-              <li key={`${item.entry.id}:${item.absPath || idx}`}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelection({
-                      ...selection,
-                      entryId: item.entry.id,
-                      filePath: item.entry.kind === "env" ? null : item.absPath,
-                    })
-                  }
-                  className={cn(
-                    "flex w-full items-start gap-2 border-b border-(--color-border)/40 px-3 py-2 text-left hover:bg-(--color-bg-muted)",
-                    isSelected && "bg-(--color-accent)/10",
-                  )}
-                >
-                  {item.entry.kind === "env" ? (
-                    <Folder size={14} className="mt-0.5 shrink-0" />
-                  ) : (
-                    <File size={14} className="mt-0.5 shrink-0" />
-                  )}
-                  <div className="flex-1 truncate">
-                    <div className="truncate text-[13px]">{label}</div>
-                    <div className="truncate text-[11px] text-(--color-fg-muted)">
-                      {item.entry.kind === "env"
-                        ? `${item.entry.envVars?.length ?? 0} variables`
-                        : `${formatBytes(item.sizeBytes ?? 0)} · ${formatRelativeTime(item.mtimeMs)}`}
-                    </div>
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {!needsProject && !loading && items.length === 0 && candidates.length > 0 && (
-        <div className="flex-1 overflow-y-auto p-3">
-          <p className="mb-2 text-xs text-(--color-fg-muted)">
-            No files yet. Possible locations:
-          </p>
-          <ul className="space-y-1.5">
-            {candidates.map((c, idx) => (
-              <li
-                key={`${c.entry.id}:${c.absPath || idx}`}
-                className="flex items-start justify-between gap-2 rounded border border-(--color-border) bg-(--color-bg-subtle) px-2 py-1.5"
-              >
-                <div className="flex-1 truncate">
-                  <div className="truncate text-[12px]">{c.entry.label}</div>
-                  <div className="truncate font-mono text-[10px] text-(--color-fg-muted)">
-                    {c.absPath}
-                  </div>
-                </div>
-                {!c.isDir && (
-                  <button
-                    type="button"
-                    onClick={() => void createFile(c)}
-                    className="flex shrink-0 items-center gap-1 rounded border border-(--color-border) px-1.5 py-0.5 text-[10px] hover:bg-(--color-bg-muted)"
-                    title="Create empty file here"
+      {!needsProject && !loading && (items.length > 0 || candidates.length > 0) && (
+        <div className="flex-1 overflow-y-auto">
+          {items.length > 0 && (
+            <ul>
+              {items.map((item, idx) => {
+                const isSelected = selection.filePath === item.absPath;
+                const label = item.childName ?? item.entry.label;
+                return (
+                  <li key={`${item.entry.id}:${item.absPath || idx}`}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelection({
+                          ...selection,
+                          entryId: item.entry.id,
+                          filePath: item.entry.kind === "env" ? null : item.absPath,
+                        })
+                      }
+                      className={cn(
+                        "flex w-full items-start gap-2 border-b border-(--color-border)/40 px-3 py-2 text-left hover:bg-(--color-bg-muted)",
+                        isSelected && "bg-(--color-accent)/10",
+                      )}
+                    >
+                      {item.entry.kind === "env" ? (
+                        <Folder size={14} className="mt-0.5 shrink-0" />
+                      ) : (
+                        <File size={14} className="mt-0.5 shrink-0" />
+                      )}
+                      <div className="flex-1 truncate">
+                        <div className="truncate text-[13px]">{label}</div>
+                        <div className="truncate text-[11px] text-(--color-fg-muted)">
+                          {item.entry.kind === "env"
+                            ? `${item.entry.envVars?.length ?? 0} variables`
+                            : `${formatBytes(item.sizeBytes ?? 0)} · ${formatRelativeTime(item.mtimeMs)}`}
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {candidates.length > 0 && (
+            <div className="p-3">
+              <p className="mb-2 text-xs text-(--color-fg-muted)">
+                {items.length > 0
+                  ? "Other locations:"
+                  : "No files yet. Possible locations:"}
+              </p>
+              <ul className="space-y-1.5">
+                {candidates.map((c, idx) => (
+                  <li
+                    key={`${c.entry.id}:${c.absPath || idx}`}
+                    className="flex items-start justify-between gap-2 rounded border border-(--color-border) bg-(--color-bg-subtle) px-2 py-1.5"
                   >
-                    <FilePlus size={10} />
-                    Create
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+                    <div className="flex-1 truncate">
+                      <div className="truncate text-[12px]">{c.entry.label}</div>
+                      <div className="truncate font-mono text-[10px] text-(--color-fg-muted)">
+                        {c.absPath}
+                      </div>
+                      {c.entry.notes && (
+                        <div className="truncate text-[10px] italic text-(--color-fg-muted)">
+                          {c.entry.notes}
+                        </div>
+                      )}
+                    </div>
+                    {!c.isDir && (
+                      <button
+                        type="button"
+                        onClick={() => void createFile(c)}
+                        className="flex shrink-0 items-center gap-1 rounded border border-(--color-border) px-1.5 py-0.5 text-[10px] hover:bg-(--color-bg-muted)"
+                        title="Create empty file here"
+                      >
+                        <FilePlus size={10} />
+                        Create
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
