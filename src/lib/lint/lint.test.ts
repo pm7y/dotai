@@ -101,13 +101,14 @@ describe("runRules: aggregation", () => {
 });
 
 describe("schema rule", () => {
-  test("flags missing required name on a skill", () => {
+  test("does not flag a skill with name omitted (name is optional per spec)", () => {
     const entry = entryById("cc.user.skills");
     if (!entry) throw new Error("fixture entry missing");
     const content = "---\ndescription: present\n---\nbody\n";
     const findings = runRules(entry, content, "/u/.claude/skills/foo/SKILL.md");
     const ids = findings.map((f) => f.ruleId);
-    expect(ids).toContain("skills/missing-required");
+    expect(ids).not.toContain("skills/missing-required");
+    expect(ids).not.toContain("skills/schema-violation");
   });
 
   test("flags unknown property on agent frontmatter", () => {

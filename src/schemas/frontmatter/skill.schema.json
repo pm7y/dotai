@@ -1,21 +1,83 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "skill-frontmatter",
-  "title": "Claude Code skill frontmatter",
+  "title": "Claude Code skill / slash-command frontmatter",
+  "description": "Custom commands have been merged into skills; both share this frontmatter.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "description"],
   "properties": {
     "name": {
       "type": "string",
-      "pattern": "^[a-z0-9][a-z0-9-]*$"
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+      "description": "Display name. If omitted, uses the directory or file name. Lowercase letters, numbers, and hyphens only (max 64 characters)."
     },
-    "description": { "type": "string", "minLength": 1 },
+    "description": {
+      "type": "string",
+      "description": "What the skill does and when to use it. Claude uses this to decide when to apply the skill."
+    },
+    "when_to_use": {
+      "type": "string",
+      "description": "Additional context for when Claude should invoke the skill, such as trigger phrases or example requests."
+    },
+    "argument-hint": {
+      "type": "string",
+      "description": "Hint shown during autocomplete to indicate expected arguments. Example: '[issue-number]' or '[filename] [format]'."
+    },
+    "arguments": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ],
+      "description": "Named positional arguments for $name substitution in the skill content."
+    },
+    "disable-model-invocation": {
+      "type": "boolean",
+      "description": "Set to true to prevent Claude from automatically loading this skill. Default: false."
+    },
+    "user-invocable": {
+      "type": "boolean",
+      "description": "Set to false to hide from the / menu. Default: true."
+    },
     "allowed-tools": {
       "anyOf": [
         { "type": "string" },
         { "type": "array", "items": { "type": "string" } }
-      ]
+      ],
+      "description": "Tools Claude can use without asking permission when this skill is active."
+    },
+    "model": {
+      "type": "string",
+      "description": "Model to use when this skill is active. Accepts 'sonnet', 'opus', 'haiku', a full model ID, or 'inherit'."
+    },
+    "effort": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "xhigh", "max"],
+      "description": "Effort level when this skill is active."
+    },
+    "context": {
+      "type": "string",
+      "enum": ["fork"],
+      "description": "Set to 'fork' to run in a forked subagent context."
+    },
+    "agent": {
+      "type": "string",
+      "description": "Which subagent type to use when context: fork is set."
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Hooks scoped to this skill's lifecycle."
+    },
+    "paths": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ],
+      "description": "Glob patterns that limit when this skill is activated automatically."
+    },
+    "shell": {
+      "type": "string",
+      "enum": ["bash", "powershell"],
+      "description": "Shell to use for !`command` and ```! blocks. Defaults to bash."
     }
   }
 }
