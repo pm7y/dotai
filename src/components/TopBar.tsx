@@ -1,12 +1,14 @@
 import { useAtom } from "jotai";
 import { ChevronDown, FolderOpen, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { open as openFolderDialog } from "@tauri-apps/plugin-dialog";
 import { projectsAtom, type Project } from "@/state/projects";
 import { projectAtom } from "@/state/selection";
 import { loadProjects, saveProjects } from "@/lib/projects-store";
 import { SearchPanel } from "@/components/SearchPanel";
 import { ProjectsPanel } from "@/components/ProjectsPanel";
+import { AboutDialog } from "@/components/AboutDialog";
 
 export function TopBar() {
   const [projects, setProjects] = useAtom(projectsAtom);
@@ -14,6 +16,7 @@ export function TopBar() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const current = projects.find((p) => p.path === project) ?? null;
 
   // load persisted projects once on mount
@@ -41,6 +44,17 @@ export function TopBar() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // listen for the macOS Apple-menu "About dotai" item to open our custom dialog
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    void listen("dotai://show-about", () => setAboutOpen(true)).then((un) => {
+      unlisten = un;
+    });
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
   async function pickProject() {
     const picked = await openFolderDialog({ directory: true, multiple: false });
     if (typeof picked !== "string") return;
@@ -57,10 +71,18 @@ export function TopBar() {
 
   return (
     <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-(--color-border) bg-(--color-bg-subtle) px-3">
-      <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setAboutOpen(true)}
+        className="flex items-center gap-2 rounded px-1.5 py-0.5 hover:bg-(--color-bg-muted)"
+        title="About dotai"
+      >
+        <img src="/icon.svg" alt="" className="h-4 w-4 rounded-sm" />
         <span className="text-[12px] font-semibold tracking-tight">dotai</span>
-        <span className="text-[11px] text-(--color-fg-muted)">v0.1.0</span>
-      </div>
+        <span className="rounded bg-(--color-bg-muted) px-1 py-0 font-mono text-[10px] text-(--color-fg-muted)">
+          v0.1.0
+        </span>
+      </button>
       <div className="flex items-center gap-2">
         <div className="relative">
           <button
@@ -141,6 +163,7 @@ export function TopBar() {
       </button>
       {searchOpen && <SearchPanel onClose={() => setSearchOpen(false)} />}
       {projectsOpen && <ProjectsPanel onClose={() => setProjectsOpen(false)} />}
+      {aboutOpen && <AboutDialog onClose={() => setAboutOpen(false)} />}
     </header>
   );
 }

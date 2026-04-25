@@ -38,6 +38,12 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "Cross-platform AI config manager",
-    "longDescription": "List, edit, watch, and search every Claude Code, Claude Desktop, and Copilot CLI config file across global and project scopes."
+    "longDescription": "List, edit, watch, and search every Claude Code, Claude Desktop, and Copilot CLI config file across global and project scopes.",
+    "copyright": "Copyright © 2026 Paul McIlreavy",
+    "publisher": "Paul McIlreavy",
+    "homepage": "https://github.com/pmcilreavy/dotai",
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }
