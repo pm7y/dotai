@@ -14,6 +14,10 @@ import { getSessionBackupDir, isReadOnlyByPath, shouldBackupNow } from "@/lib/ba
 import { extensionsForEntry } from "@/lib/editor-extensions";
 import { isAlwaysPromptPath, watchPath } from "@/lib/watcher";
 import { EnvVarsPanel } from "@/components/EnvVarsPanel";
+import { viewModeAtom } from "@/state/viewMode";
+import { loadViewMode, saveViewMode, type ViewMode } from "@/lib/preferences-store";
+import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
+import { ViewModeSelector } from "@/components/Editor/ViewModeSelector";
 
 type LoadState =
   | { status: "idle" }
@@ -31,16 +35,36 @@ export function Editor() {
   const selection = useAtomValue(selectionAtom);
   const [buffers, setBuffers] = useAtom(buffersAtom);
   const setConflict = useSetAtom(conflictAtom);
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
 
   const entry = selection.entryId ? entryById(selection.entryId) : null;
+  const isMarkdown = entry?.language === "markdown";
   const isEnv = entry?.kind === "env";
   const filePath = isEnv ? null : selection.filePath;
   const buffer = filePath ? buffers[filePath] : null;
   const isPluginReadOnly = filePath ? isReadOnlyByPath(filePath) : false;
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadViewMode().then((mode) => {
+      if (!cancelled) setViewMode(mode);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setViewMode]);
+
+  const onViewModeChange = useCallback(
+    (next: ViewMode) => {
+      setViewMode(next);
+      void saveViewMode(next);
+    },
+    [setViewMode],
+  );
 
   const save = useCallback(async () => {
     if (!filePath || !buffer || isPluginReadOnly) return;
@@ -352,6 +376,9 @@ export function Editor() {
           )}
         </div>
         <div className="flex items-center gap-3 text-[11px] text-(--color-fg-muted)">
+          {isMarkdown && (
+            <ViewModeSelector value={viewMode} onChange={onViewModeChange} />
+          )}
           <span className="rounded bg-(--color-bg-muted) px-2 py-0.5 font-mono uppercase">
             {entry.language}
           </span>
@@ -409,11 +436,27 @@ export function Editor() {
       ) : loadState.status === "error" ? (
         <p className="p-4 text-xs text-(--color-danger)">Error: {loadState.message}</p>
       ) : null}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-auto"
-        style={{ display: showEditor ? "block" : "none" }}
-      />
+      <div className="flex flex-1 min-h-0">
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-auto"
+          style={{
+            display:
+              showEditor && (!isMarkdown || viewMode !== "preview") ? "block" : "none",
+            flexBasis: isMarkdown && viewMode === "split" ? "50%" : "100%",
+          }}
+        />
+        {showEditor && isMarkdown && viewMode !== "edit" && (
+          <div
+            className="overflow-auto border-l border-(--color-border)"
+            style={{
+              flexBasis: viewMode === "split" ? "50%" : "100%",
+            }}
+          >
+            <MarkdownPreview source={buffer?.currentContent ?? ""} />
+          </div>
+        )}
+      </div>
     </main>
   );
 }
