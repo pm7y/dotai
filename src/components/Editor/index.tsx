@@ -149,7 +149,7 @@ export function Editor() {
     if (!entry) return [];
     return [
       basicSetup,
-      ...extensionsForEntry(entry),
+      ...extensionsForEntry(entry, filePath ?? ""),
       EditorState.readOnly.of(!editable),
       EditorView.editable.of(editable),
       EditorView.lineWrapping,
@@ -169,7 +169,7 @@ export function Editor() {
         },
       ]),
     ];
-  }, [entry, editable, onChange, save]);
+  }, [entry, editable, onChange, save, filePath]);
 
   useEffect(() => {
     if (isEnv || !filePath || !entry) return;
