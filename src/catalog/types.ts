@@ -13,7 +13,8 @@ export type Category =
   | "rules"
   | "plugins"
   | "keybindings"
-  | "env";
+  | "env"
+  | "adhoc";
 
 export type Language = "json" | "jsonc" | "markdown" | "toml" | "env";
 
@@ -69,4 +70,5 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   plugins: "Plugins",
   keybindings: "Keybindings",
   env: "Environment",
+  adhoc: "Linked file",
 };
