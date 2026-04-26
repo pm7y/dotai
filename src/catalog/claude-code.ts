@@ -188,6 +188,18 @@ export const claudeCodeEntries: CatalogEntry[] = [
     docsUrl: `${CC_DOCS}/skills`,
   },
   {
+    id: "cc.user.hooks",
+    tool: "claude-code",
+    scope: "user",
+    category: "hooks",
+    label: "Hooks (scripts)",
+    pathTemplate: "{home}/.claude/hooks",
+    kind: "dir-of-files",
+    fileGlob: "*",
+    language: "markdown",
+    docsUrl: `${CC_DOCS}/hooks`,
+  },
+  {
     id: "cc.project.hooks",
     tool: "claude-code",
     scope: "project",
