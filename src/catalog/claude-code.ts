@@ -212,6 +212,19 @@ export const claudeCodeEntries: CatalogEntry[] = [
     docsUrl: `${CC_DOCS}/hooks`,
   },
   {
+    id: "cc.user.mcp",
+    tool: "claude-code",
+    scope: "user",
+    category: "mcp",
+    label: ".claude.json (user MCP)",
+    pathTemplate: "{home}/.claude.json",
+    kind: "file",
+    language: "json",
+    docsUrl: `${CC_DOCS}/mcp`,
+    notes:
+      "User-scope MCP servers live alongside state and prefs in this file. Claude Code rewrites it while running — the conflict prompt is always-on.",
+  },
+  {
     id: "cc.project.mcp",
     tool: "claude-code",
     scope: "project",
