@@ -12,7 +12,6 @@ import { findRefs, type ResolvedRef } from "@/lib/refs";
 export type RefsContext = {
   home: string;
   contextDir: string | null;
-  detectBackticks: boolean;
   onOpen: (absolutePath: string) => void;
 };
 

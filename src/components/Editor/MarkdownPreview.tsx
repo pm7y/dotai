@@ -4,10 +4,10 @@ import remarkGfm from "remark-gfm";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { useAtomValue } from "jotai";
 import { visit } from "unist-util-visit";
-import type { Root, Text, Link, InlineCode } from "mdast";
+import type { Root, Text, Link } from "mdast";
 import { isAbsoluteUrl, stripFrontmatter } from "@/lib/markdown";
 import { openDocs } from "@/lib/docs-links";
-import { findRefs, parseRefs, resolveRefPath } from "@/lib/refs";
+import { parseRefs, resolveRefPath } from "@/lib/refs";
 import { homeDirAtom, selectionAtom } from "@/state/selection";
 
 type Props = { source: string; onOpenRef?: (absolutePath: string) => void };
@@ -57,62 +57,42 @@ function makeRefAnchor(onOpenRef: ((path: string) => void) | undefined) {
   };
 }
 
-// remark plugin: rewrite text + inlineCode nodes that contain refs into
-// link nodes whose href is `dotai-ref:<absolute>`.
+// remark plugin: rewrite text nodes that contain @-refs into link nodes
+// whose href is `dotai-ref:<absolute>`.
 function remarkRefs(opts: {
   home: string | null;
   contextDir: string | null;
 }): () => (tree: Root) => void {
   return () => (tree) => {
     if (!opts.home) return;
-    visit(tree, (node, index, parent) => {
+    visit(tree, "text", (node, index, parent) => {
       if (!parent || index === undefined) return;
-
-      if (node.type === "text") {
-        const text = (node as Text).value;
-        const matches = parseRefs(text, { detectBackticks: false });
-        if (matches.length === 0) return;
-        const newNodes: Array<Text | Link> = [];
-        let cursor = 0;
-        for (const m of matches) {
-          const abs = resolveRefPath(m.raw, {
-            home: opts.home!,
-            contextDir: opts.contextDir,
-          });
-          if (abs === null) continue;
-          if (m.start > cursor) {
-            newNodes.push({ type: "text", value: text.slice(cursor, m.start) });
-          }
-          newNodes.push({
-            type: "link",
-            url: REF_SCHEME + abs,
-            title: abs,
-            children: [{ type: "text", value: m.raw }],
-          });
-          cursor = m.end;
-        }
-        if (cursor < text.length) {
-          newNodes.push({ type: "text", value: text.slice(cursor) });
-        }
-        parent.children.splice(index, 1, ...newNodes);
-      } else if (node.type === "inlineCode") {
-        const value = (node as InlineCode).value;
-        // Wrap the value in backticks for findRefs (it expects the raw form).
-        const refs = findRefs(`\`${value}\``, {
+      const text = (node as Text).value;
+      const matches = parseRefs(text);
+      if (matches.length === 0) return;
+      const newNodes: Array<Text | Link> = [];
+      let cursor = 0;
+      for (const m of matches) {
+        const abs = resolveRefPath(m.raw, {
           home: opts.home!,
           contextDir: opts.contextDir,
-          detectBackticks: true,
         });
-        if (refs.length !== 1) return;
-        const ref = refs[0];
-        const linkNode: Link = {
+        if (abs === null) continue;
+        if (m.start > cursor) {
+          newNodes.push({ type: "text", value: text.slice(cursor, m.start) });
+        }
+        newNodes.push({
           type: "link",
-          url: REF_SCHEME + ref.absolutePath,
-          title: ref.absolutePath,
-          children: [{ type: "inlineCode", value }],
-        };
-        parent.children.splice(index, 1, linkNode);
+          url: REF_SCHEME + abs,
+          title: abs,
+          children: [{ type: "text", value: m.raw }],
+        });
+        cursor = m.end;
       }
+      if (cursor < text.length) {
+        newNodes.push({ type: "text", value: text.slice(cursor) });
+      }
+      parent.children.splice(index, 1, ...newNodes);
     });
   };
 }

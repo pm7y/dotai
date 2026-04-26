@@ -233,10 +233,9 @@ export function Editor() {
     return {
       home: homeDir,
       contextDir,
-      detectBackticks: entry?.language === "markdown",
       onOpen: openRef,
     };
-  }, [filePath, homeDir, entry?.language, openRef]);
+  }, [filePath, homeDir, openRef]);
 
   const extensions = useMemo<Extension[]>(() => {
     if (!entry) return [];
