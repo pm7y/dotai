@@ -5,7 +5,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { isAbsoluteUrl, stripFrontmatter } from "@/lib/markdown";
 import { openDocs } from "@/lib/docs-links";
 
-type Props = { source: string };
+type Props = { source: string; onOpenRef?: (path: string) => void };
 
 type AnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href?: string };
 
@@ -53,7 +53,7 @@ class PreviewErrorBoundary extends Component<
   }
 }
 
-export function MarkdownPreview({ source }: Props) {
+export function MarkdownPreview({ source, onOpenRef: _onOpenRef }: Props) {
   const body = stripFrontmatter(source).trim();
   if (body.length === 0) {
     return (

@@ -17,3 +17,5 @@ export const selectionAtom = atom<Selection>({
 });
 
 export const projectAtom = atom<string | null>(null);
+
+export const homeDirAtom = atom<string | null>(null);

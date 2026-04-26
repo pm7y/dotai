@@ -5,7 +5,9 @@ import { EditorView, basicSetup } from "codemirror";
 import { EditorState, type Extension } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { entryById } from "@/catalog";
-import { selectionAtom } from "@/state/selection";
+import { selectionAtom, homeDirAtom } from "@/state/selection";
+import { nextSelectionForPath } from "@/lib/open-ref";
+import type { RefsContext } from "@/lib/codemirror-refs";
 import { buffersAtom } from "@/state/buffers";
 import { conflictAtom } from "@/state/watcher";
 import { readFile, writeFile, onWatchEvent } from "@/lib/tauri";
@@ -44,7 +46,12 @@ export function Editor() {
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
   const [formatError, setFormatError] = useState<string | null>(null);
 
-  const entry = selection.entryId ? entryById(selection.entryId) : null;
+  const homeDir = useAtomValue(homeDirAtom);
+  const setSelection = useSetAtom(selectionAtom);
+
+  const entry = selection.entryId
+    ? entryById(selection.entryId)
+    : (selection.syntheticEntry ?? null);
   const isMarkdown = entry?.language === "markdown";
   const isEnv = entry?.kind === "env";
   const filePath = isEnv ? null : selection.filePath;
@@ -140,6 +147,13 @@ export function Editor() {
     setFormatError(null);
   }, [filePath]);
 
+  const openRef = useCallback(
+    (absolutePath: string) => {
+      setSelection((cur) => nextSelectionForPath(absolutePath, cur));
+    },
+    [setSelection],
+  );
+
   const revert = useCallback(() => {
     if (!filePath || !buffer || !buffer.dirty) return;
     setBuffers((prev) => {
@@ -212,11 +226,23 @@ export function Editor() {
 
   const editable = !!filePath && !isPluginReadOnly;
 
+  const refsCtx = useMemo<RefsContext | null>(() => {
+    if (!filePath || !homeDir) return null;
+    const lastSlash = filePath.lastIndexOf("/");
+    const contextDir = lastSlash >= 0 ? filePath.slice(0, lastSlash) : null;
+    return {
+      home: homeDir,
+      contextDir,
+      detectBackticks: entry?.language === "markdown",
+      onOpen: openRef,
+    };
+  }, [filePath, homeDir, entry?.language, openRef]);
+
   const extensions = useMemo<Extension[]>(() => {
     if (!entry) return [];
     return [
       basicSetup,
-      ...extensionsForEntry(entry),
+      ...extensionsForEntry(entry, refsCtx),
       EditorState.readOnly.of(!editable),
       EditorView.editable.of(editable),
       EditorView.lineWrapping,
@@ -236,7 +262,7 @@ export function Editor() {
         },
       ]),
     ];
-  }, [entry, editable, onChange, save]);
+  }, [entry, editable, onChange, save, refsCtx]);
 
   useEffect(() => {
     if (isEnv || !filePath || !entry) return;
@@ -493,13 +519,15 @@ export function Editor() {
               </button>
             </>
           )}
-          <button
-            type="button"
-            onClick={() => openDocs(entry.docsUrl)}
-            className="flex items-center gap-1 text-(--color-accent) hover:underline"
-          >
-            Docs <ExternalLink size={11} />
-          </button>
+          {entry.docsUrl && (
+            <button
+              type="button"
+              onClick={() => openDocs(entry.docsUrl)}
+              className="flex items-center gap-1 text-(--color-accent) hover:underline"
+            >
+              Docs <ExternalLink size={11} />
+            </button>
+          )}
         </div>
       </header>
       {entry.notes && (
@@ -552,7 +580,7 @@ export function Editor() {
               flexBasis: viewMode === "split" ? "50%" : "100%",
             }}
           >
-            <MarkdownPreview source={buffer?.currentContent ?? ""} />
+            <MarkdownPreview source={buffer?.currentContent ?? ""} onOpenRef={openRef} />
           </div>
         )}
       </div>
