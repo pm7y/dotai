@@ -159,3 +159,19 @@ Synthetic entries are not persisted across reloads. They live only in `selection
 - **Backtick false positives in markdown**: small. The "must start with path-prefix" rule keeps most code samples out (e.g. `` `useState` ``, `` `git status` `` are skipped). If we hit problems, tighten further (e.g. require an extension).
 - **CodeMirror decoration churn**: `parseRefs` runs on every doc update. The implementation should debounce or use CM's incremental decoration API. Worst case for skill files (a few KB) is negligible, but we'll measure if a large file ever stalls.
 - **Selection-model change**: extending `Selection` to a discriminated union touches every reader. Mitigation: use a small helper (`getActiveEntry(selection)`) so call sites don't grow conditionals.
+
+---
+
+## Postscript — 2026-04-26: backtick detection dropped
+
+After the feature shipped we backed out backtick-path detection (commit `1bc274c`). The "small" false-positive risk above turned out to be unreliable in practice — backticks in markdown are overwhelmingly used for code samples, command snippets, and identifier references, not file paths. The path-prefix rule kept obvious cases out (`` `useState` ``, `` `git status` ``) but couldn't distinguish things like a `` `/some/path` `` shown as an example shell argument from a real ref.
+
+What changed:
+
+- `parseRefs` no longer takes options — it always detects only `@`-prefix refs.
+- `FindRefsContext` collapsed into `ResolveContext`; `RefsContext` lost `detectBackticks`.
+- The `inlineCode` branch in the markdown preview's remark plugin was removed.
+- Fence-tracking helpers (`rangesInsideFences`, `isInside`, `FENCE_LINE`, `BACKTICK_REGEX`) are gone.
+- Seven backtick-only tests were dropped; one new test asserts that backtick paths are *not* detected.
+
+Net result: `@`-refs only. The "Reference grammar — Inline backtick paths" section above no longer applies. If we want the feature back, the lesson is to require a stronger signal than "starts with `/` and has `/` separators" — e.g. an explicit marker, or only-when-the-file-exists.
