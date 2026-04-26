@@ -82,3 +82,59 @@ export function parseRefs(text: string, opts: ParseOptions): RefMatch[] {
   matches.sort((a, b) => a.start - b.start);
   return matches;
 }
+
+export type ResolveContext = {
+  home: string;
+  contextDir: string | null;
+};
+
+// Normalises a posix-style path: collapses ., .., and double slashes.
+// Always returns an absolute path (no trailing slash unless root).
+function normalisePath(path: string): string {
+  const parts = path.split("/");
+  const out: string[] = [];
+  for (const part of parts) {
+    if (part === "" || part === ".") continue;
+    if (part === "..") {
+      if (out.length > 0) out.pop();
+      continue;
+    }
+    out.push(part);
+  }
+  return "/" + out.join("/");
+}
+
+function unwrap(raw: string): string {
+  if (raw.startsWith("`") && raw.endsWith("`")) return raw.slice(1, -1);
+  if (raw.startsWith("@")) return raw.slice(1);
+  return raw;
+}
+
+export function resolveRefPath(
+  raw: string,
+  ctx: ResolveContext,
+): string | null {
+  let body = unwrap(raw);
+  // Strip #fragment.
+  const hash = body.indexOf("#");
+  if (hash >= 0) body = body.slice(0, hash);
+
+  // Substitute home anchors.
+  if (body.startsWith("$HOME/")) {
+    return normalisePath(ctx.home + "/" + body.slice("$HOME/".length));
+  }
+  if (body.startsWith("${HOME}/")) {
+    return normalisePath(ctx.home + "/" + body.slice("${HOME}/".length));
+  }
+  if (body.startsWith("~/")) {
+    return normalisePath(ctx.home + "/" + body.slice(2));
+  }
+  if (body.startsWith("/")) {
+    return normalisePath(body);
+  }
+  if (body.startsWith("./") || body.startsWith("../")) {
+    if (!ctx.contextDir) return null;
+    return normalisePath(ctx.contextDir + "/" + body);
+  }
+  return null;
+}

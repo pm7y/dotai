@@ -123,3 +123,73 @@ describe("parseRefs — backtick paths", () => {
     expect(parseRefs(text, { detectBackticks: true })).toEqual([]);
   });
 });
+
+import { resolveRefPath } from "./refs";
+
+describe("resolveRefPath", () => {
+  const home = "/Users/alice";
+
+  it("expands @$HOME/...", () => {
+    expect(resolveRefPath("@$HOME/.claude/foo.md", { home, contextDir: null }))
+      .toBe("/Users/alice/.claude/foo.md");
+  });
+
+  it("expands @${HOME}/...", () => {
+    expect(resolveRefPath("@${HOME}/.claude/foo.md", { home, contextDir: null }))
+      .toBe("/Users/alice/.claude/foo.md");
+  });
+
+  it("expands @~/...", () => {
+    expect(resolveRefPath("@~/.claude/foo.md", { home, contextDir: null }))
+      .toBe("/Users/alice/.claude/foo.md");
+  });
+
+  it("returns absolute @/... unchanged (normalised)", () => {
+    expect(resolveRefPath("@/etc/hosts", { home, contextDir: null }))
+      .toBe("/etc/hosts");
+  });
+
+  it("resolves @./foo.md against contextDir", () => {
+    expect(
+      resolveRefPath("@./bar.md", {
+        home,
+        contextDir: "/Users/alice/project/sub",
+      }),
+    ).toBe("/Users/alice/project/sub/bar.md");
+  });
+
+  it("resolves @../bar.md against contextDir", () => {
+    expect(
+      resolveRefPath("@../bar.md", {
+        home,
+        contextDir: "/Users/alice/project/sub",
+      }),
+    ).toBe("/Users/alice/project/bar.md");
+  });
+
+  it("normalises .. and . segments", () => {
+    expect(
+      resolveRefPath("@$HOME/foo/../bar/./baz.md", { home, contextDir: null }),
+    ).toBe("/Users/alice/bar/baz.md");
+  });
+
+  it("strips a #fragment from the path", () => {
+    expect(resolveRefPath("@~/foo.md#section", { home, contextDir: null }))
+      .toBe("/Users/alice/foo.md");
+  });
+
+  it("resolves backtick refs identically", () => {
+    expect(resolveRefPath("`~/foo.md`", { home, contextDir: null }))
+      .toBe("/Users/alice/foo.md");
+    expect(
+      resolveRefPath("`./bar.md`", {
+        home,
+        contextDir: "/Users/alice/sub",
+      }),
+    ).toBe("/Users/alice/sub/bar.md");
+  });
+
+  it("returns null when relative ref has no contextDir", () => {
+    expect(resolveRefPath("@./foo.md", { home, contextDir: null })).toBeNull();
+  });
+});
