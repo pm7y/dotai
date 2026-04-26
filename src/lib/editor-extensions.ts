@@ -8,6 +8,7 @@ import { tags } from "@lezer/highlight";
 import { getSchema, type JsonSchema } from "@/schemas";
 import type { CatalogEntry } from "@/catalog";
 import type { RuleFinding } from "@/lib/lint";
+import { refsExtension, type RefsContext } from "@/lib/codemirror-refs";
 
 function jsonExtension(schema: JsonSchema | undefined): Extension[] {
   if (schema) return jsonSchema(schema as never);
@@ -56,18 +57,26 @@ function lintExtensionForMarkdown(): Extension[] {
   ];
 }
 
-export function extensionsForEntry(entry: CatalogEntry): Extension[] {
+export function extensionsForEntry(
+  entry: CatalogEntry,
+  refsCtx: RefsContext | null,
+): Extension[] {
+  const refs = refsCtx ? [refsExtension(refsCtx)] : [];
   switch (entry.language) {
     case "json":
     case "jsonc":
-      return jsonExtension(entry.schemaId ? getSchema(entry.schemaId) : undefined);
+      return [
+        ...jsonExtension(entry.schemaId ? getSchema(entry.schemaId) : undefined),
+        ...refs,
+      ];
     case "markdown":
       return [
         markdown(),
         syntaxHighlighting(markdownHeadingStyle),
         ...lintExtensionForMarkdown(),
+        ...refs,
       ];
     default:
-      return [];
+      return [...refs];
   }
 }
