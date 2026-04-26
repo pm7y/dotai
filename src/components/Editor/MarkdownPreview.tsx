@@ -153,8 +153,7 @@ export function MarkdownPreview({ source, onOpenRef }: Props) {
   const selection = useAtomValue(selectionAtom);
   const filePath = selection.filePath;
   const lastSlash = filePath ? filePath.lastIndexOf("/") : -1;
-  const contextDir =
-    filePath && lastSlash >= 0 ? filePath.slice(0, lastSlash) : null;
+  const contextDir = filePath && lastSlash >= 0 ? filePath.slice(0, lastSlash) : null;
 
   const body = stripFrontmatter(source).trim();
   if (body.length === 0) {

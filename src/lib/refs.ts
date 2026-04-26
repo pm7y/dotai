@@ -11,16 +11,14 @@ export type ParseOptions = {
 // @-prefix: @ followed by one of the path anchors, then path chars.
 // Anchors: $HOME, ${HOME}, ~, ., .., or a literal /.
 // Stops at whitespace. Trailing .,;:) are stripped post-match.
-const AT_REF_REGEX =
-  /(?<![\\\w])@(\$HOME|\$\{HOME\}|~|\.|\.\.|)(\/[^\s`]*)/g;
+const AT_REF_REGEX = /(?<![\\\w])@(\$HOME|\$\{HOME\}|~|\.|\.\.|)(\/[^\s`]*)/g;
 
 const TRAILING_PUNCT = /[.,;:)]+$/;
 
 // Backtick paths: a single-backtick span whose content starts with a
 // known path anchor and contains a separator. The leading `/` case covers
 // absolute paths like `/etc/hosts`.
-const BACKTICK_REGEX =
-  /`((?:~|\.{1,2}|\$HOME|\$\{HOME\}|(?=\/))\/[^`\n]*)`/g;
+const BACKTICK_REGEX = /`((?:~|\.{1,2}|\$HOME|\$\{HOME\}|(?=\/))\/[^`\n]*)`/g;
 
 // Matches an opening or closing fenced-code-block line. Captures the fence
 // for closing-pair matching (``` opens iff ``` closes; same for ~~~).
@@ -110,10 +108,7 @@ function unwrap(raw: string): string {
   return raw;
 }
 
-export function resolveRefPath(
-  raw: string,
-  ctx: ResolveContext,
-): string | null {
+export function resolveRefPath(raw: string, ctx: ResolveContext): string | null {
   let body = unwrap(raw);
   // Strip #fragment.
   const hash = body.indexOf("#");

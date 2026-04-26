@@ -41,11 +41,7 @@ describe("parseRefs — @-prefix references", () => {
   it("strips trailing punctuation .,;:)", () => {
     const text = "ref @~/foo.md, then @~/bar.md; and @~/baz.md.";
     const refs = parseRefs(text, { detectBackticks: false });
-    expect(refs.map((r) => r.raw)).toEqual([
-      "@~/foo.md",
-      "@~/bar.md",
-      "@~/baz.md",
-    ]);
+    expect(refs.map((r) => r.raw)).toEqual(["@~/foo.md", "@~/bar.md", "@~/baz.md"]);
   });
 
   it("does not match @ without a path-prefix", () => {
@@ -101,10 +97,7 @@ describe("parseRefs — backtick paths", () => {
       "and `~/after.md`",
     ].join("\n");
     const refs = parseRefs(text, { detectBackticks: true });
-    expect(refs.map((r) => r.raw)).toEqual([
-      "`~/before.md`",
-      "`~/after.md`",
-    ]);
+    expect(refs.map((r) => r.raw)).toEqual(["`~/before.md`", "`~/after.md`"]);
   });
 
   it("skips ~~~ fenced code blocks", () => {
@@ -130,23 +123,27 @@ describe("resolveRefPath", () => {
   const home = "/Users/alice";
 
   it("expands @$HOME/...", () => {
-    expect(resolveRefPath("@$HOME/.claude/foo.md", { home, contextDir: null }))
-      .toBe("/Users/alice/.claude/foo.md");
+    expect(resolveRefPath("@$HOME/.claude/foo.md", { home, contextDir: null })).toBe(
+      "/Users/alice/.claude/foo.md",
+    );
   });
 
   it("expands @${HOME}/...", () => {
-    expect(resolveRefPath("@${HOME}/.claude/foo.md", { home, contextDir: null }))
-      .toBe("/Users/alice/.claude/foo.md");
+    expect(resolveRefPath("@${HOME}/.claude/foo.md", { home, contextDir: null })).toBe(
+      "/Users/alice/.claude/foo.md",
+    );
   });
 
   it("expands @~/...", () => {
-    expect(resolveRefPath("@~/.claude/foo.md", { home, contextDir: null }))
-      .toBe("/Users/alice/.claude/foo.md");
+    expect(resolveRefPath("@~/.claude/foo.md", { home, contextDir: null })).toBe(
+      "/Users/alice/.claude/foo.md",
+    );
   });
 
   it("returns absolute @/... unchanged (normalised)", () => {
-    expect(resolveRefPath("@/etc/hosts", { home, contextDir: null }))
-      .toBe("/etc/hosts");
+    expect(resolveRefPath("@/etc/hosts", { home, contextDir: null })).toBe(
+      "/etc/hosts",
+    );
   });
 
   it("resolves @./foo.md against contextDir", () => {
@@ -174,13 +171,15 @@ describe("resolveRefPath", () => {
   });
 
   it("strips a #fragment from the path", () => {
-    expect(resolveRefPath("@~/foo.md#section", { home, contextDir: null }))
-      .toBe("/Users/alice/foo.md");
+    expect(resolveRefPath("@~/foo.md#section", { home, contextDir: null })).toBe(
+      "/Users/alice/foo.md",
+    );
   });
 
   it("resolves backtick refs identically", () => {
-    expect(resolveRefPath("`~/foo.md`", { home, contextDir: null }))
-      .toBe("/Users/alice/foo.md");
+    expect(resolveRefPath("`~/foo.md`", { home, contextDir: null })).toBe(
+      "/Users/alice/foo.md",
+    );
     expect(
       resolveRefPath("`./bar.md`", {
         home,

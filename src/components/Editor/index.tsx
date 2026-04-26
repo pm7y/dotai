@@ -580,7 +580,10 @@ export function Editor() {
               flexBasis: viewMode === "split" ? "50%" : "100%",
             }}
           >
-            <MarkdownPreview source={buffer?.currentContent ?? ""} onOpenRef={openRef} />
+            <MarkdownPreview
+              source={buffer?.currentContent ?? ""}
+              onOpenRef={openRef}
+            />
           </div>
         )}
       </div>
