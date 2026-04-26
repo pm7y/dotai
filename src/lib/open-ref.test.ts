@@ -12,7 +12,9 @@ const base: Selection = {
 describe("nextSelectionForPath", () => {
   it("returns a synthetic-entry selection when no lookup is given", () => {
     const next = nextSelectionForPath("/Users/alice/.claude/skills/x/SKILL.md", base);
-    expect(next.entryId).toBeNull();
+    // entryId is preserved so the FileList stays anchored to the originating
+    // category while the editor follows the link target.
+    expect(next.entryId).toBe("claude-code-user-claudemd");
     expect(next.filePath).toBe("/Users/alice/.claude/skills/x/SKILL.md");
     expect(next.syntheticEntry?.id).toBe(
       "adhoc:/Users/alice/.claude/skills/x/SKILL.md",
@@ -46,7 +48,7 @@ describe("nextSelectionForPath", () => {
     const next = nextSelectionForPath("/nope/x.md", base, {
       findCatalogEntryByPath: () => null,
     });
-    expect(next.entryId).toBeNull();
+    expect(next.entryId).toBe("claude-code-user-claudemd");
     expect(next.syntheticEntry?.id).toBe("adhoc:/nope/x.md");
   });
 });

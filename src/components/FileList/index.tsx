@@ -142,6 +142,7 @@ export function FileList() {
         ...selection,
         entryId: c.entry.id,
         filePath: c.absPath,
+        syntheticEntry: undefined,
       });
       setReloadKey((k) => k + 1);
     } catch (e) {
@@ -197,6 +198,7 @@ export function FileList() {
                           ...selection,
                           entryId: item.entry.id,
                           filePath: item.entry.kind === "env" ? null : item.absPath,
+                          syntheticEntry: undefined,
                         })
                       }
                       className={cn(

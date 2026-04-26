@@ -49,9 +49,13 @@ export function Editor() {
   const homeDir = useAtomValue(homeDirAtom);
   const setSelection = useSetAtom(selectionAtom);
 
-  const entry = selection.entryId
-    ? entryById(selection.entryId)
-    : (selection.syntheticEntry ?? null);
+  // Prefer the synthetic entry when present — it carries the actual file
+  // we navigated to via a ref. The catalog entryId stays set so the
+  // FileList keeps its category context, but the editor view follows the
+  // link target.
+  const entry =
+    selection.syntheticEntry ??
+    (selection.entryId ? entryById(selection.entryId) : null);
   const isMarkdown = entry?.language === "markdown";
   const isEnv = entry?.kind === "env";
   const filePath = isEnv ? null : selection.filePath;

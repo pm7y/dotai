@@ -24,10 +24,13 @@ export function nextSelectionForPath(
       filePath: absolutePath,
     };
   }
+  // Keep `entryId` so the FileList stays anchored to the originating
+  // category. The Editor reads `syntheticEntry` first (see below) so the
+  // editor view follows the link target while the sidebar holds context.
   return {
     tool: current.tool,
     scope: current.scope,
-    entryId: null,
+    entryId: current.entryId,
     filePath: absolutePath,
     syntheticEntry: entryForPath(absolutePath),
   };
