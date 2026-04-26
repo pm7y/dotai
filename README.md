@@ -2,17 +2,19 @@
 
 A cross-platform desktop app that lists, edits, watches, and searches every Claude Code, Claude Desktop, and Copilot CLI configuration file across global and project scopes — in one place.
 
-Built with Tauri 2 (Rust shell ~5–10 MB binary) + React 18 + TypeScript + Vite + Tailwind v4 + CodeMirror 6 + Jotai.
+Built with Tauri 2 (Rust shell ~5–10 MB binary) + React 19 + TypeScript + Vite + Tailwind v4 + CodeMirror 6 + Jotai.
 
-## Features (planned, by milestone)
+## Features
 
-- **M0** Skeleton — three-pane layout (sidebar / file list / editor), Tailwind v4, CI.
-- **M1** Catalog + read-only viewer — sidebar enumerates real files, syntax highlighting.
-- **M2** Editing + atomic save — Cmd/Ctrl+S, backup-on-first-edit, line-ending preservation.
-- **M3** Schemas + docs links — JSON Schema validation, YAML frontmatter validation, "Docs ↗" buttons.
-- **M4** Live watch + conflict resolution — external edits reload, dirty buffers prompt.
-- **M5** Search + Projects + Env vars — Cmd/Ctrl+K cross-config search, project picker + auto-scan, env panel.
-- **M6** Polish + ship — icon, shortcuts, error toasts, unsigned macOS universal + Windows x64 release.
+- **Three-pane layout** — sidebar (categories) / file list / CodeMirror editor.
+- **Catalog-driven discovery** — every known Claude Code, Claude Desktop, and Copilot CLI config location enumerated from a single TypeScript catalog; per-OS path tokens resolved by Rust.
+- **Atomic editing** — Cmd/Ctrl+S writes via temp-file + rename, with a backup of the original on first edit (under `appLocalData/backups/`). Line endings are preserved.
+- **Schema validation** — JSON Schema for settings/MCP/keybindings, YAML frontmatter validation for prompt files, with inline lint markers and a "Docs ↗" button per entry.
+- **Live watch + conflict resolution** — external edits reload clean buffers automatically; dirty buffers prompt before overwrite.
+- **Cross-config search** — Cmd/Ctrl+K opens a ripgrep-backed search across every catalogued file.
+- **Projects** — pick any directory, auto-scan for project-scope `.claude/`, `.github/copilot/`, etc.
+- **Env vars panel** — enumerate every `ANTHROPIC_*` / `CLAUDE_*` / `COPILOT_*` value the current shell exposes.
+- **Inline reference navigation** — `@`-prefixed paths and absolute paths in markdown previews are clickable; jump straight to the referenced file in the editor.
 
 ## Cloud sync (read-only)
 
@@ -22,10 +24,6 @@ Excluded by design: env-var values (secrets), `~/.claude.json` (rewrites itself)
 
 Configure under **Cloud Sync** in the top bar.
 
-## Out of scope for v1
-
-Diff/compare scopes view, schema-aware form editor, organisation-managed paths, code signing/notarization, auto-update, shell-profile env editing.
-
 ## Keyboard shortcuts
 
 | Shortcut | Action |
@@ -34,26 +32,17 @@ Diff/compare scopes view, schema-aware form editor, organisation-managed paths, 
 | `Cmd/Ctrl+K` | Open the cross-config search modal |
 | `Esc` | Close any open modal (search, projects, conflict) |
 
-## Development
+## Building from source
 
 Requirements: Rust 1.78+, Node 22+, pnpm 10+.
 
 ```bash
 pnpm install
 pnpm tauri dev      # launches the desktop app with HMR
-pnpm typecheck      # tsc --noEmit
-pnpm lint           # eslint
-pnpm format         # prettier --write (TS/CSS/JSON only)
-pnpm format:rust    # cargo fmt
+pnpm tauri build    # produces a release bundle in src-tauri/target/release/bundle/
 ```
 
-## Architecture
-
-The frontend declares every known config file location in a single TypeScript catalog (`src/catalog/`). Path templates use `{home}`, `{copilot_home}`, `{claude_desktop_config}`, `{appdata}`, `{project}` tokens that the Rust `resolve_path` command expands per-OS.
-
-The Rust side stays dumb — it provides commands for path resolution, atomic IO, debounced watching, ripgrep-style search, and env-var enumeration. Catalog edits don't trigger Rust rebuilds.
-
-See `docs/ARCHITECTURE.md`, `docs/CATALOG.md`, `docs/SCHEMAS.md` for more.
+Contributor docs (architecture, catalog format, schemas) live under `docs/`.
 
 ## Privacy
 
