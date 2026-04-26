@@ -193,3 +193,44 @@ describe("resolveRefPath", () => {
     expect(resolveRefPath("@./foo.md", { home, contextDir: null })).toBeNull();
   });
 });
+
+import { findRefs } from "./refs";
+
+describe("findRefs", () => {
+  const home = "/Users/alice";
+
+  it("combines parseRefs and resolveRefPath", () => {
+    const text = "see @~/foo.md and `./bar.md` here";
+    const result = findRefs(text, {
+      home,
+      contextDir: "/Users/alice/proj",
+      detectBackticks: true,
+    });
+    expect(result).toEqual([
+      {
+        start: 4,
+        end: 13,
+        raw: "@~/foo.md",
+        absolutePath: "/Users/alice/foo.md",
+      },
+      {
+        start: 18,
+        end: 28,
+        raw: "`./bar.md`",
+        absolutePath: "/Users/alice/proj/bar.md",
+      },
+    ]);
+  });
+
+  it("drops refs that fail to resolve", () => {
+    // @./foo.md without a contextDir resolves to null.
+    const text = "@./foo.md and @~/bar.md";
+    const result = findRefs(text, {
+      home,
+      contextDir: null,
+      detectBackticks: false,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].absolutePath).toBe("/Users/alice/bar.md");
+  });
+});

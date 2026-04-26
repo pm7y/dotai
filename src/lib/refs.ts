@@ -138,3 +138,18 @@ export function resolveRefPath(
   }
   return null;
 }
+
+export type ResolvedRef = RefMatch & { absolutePath: string };
+
+export type FindRefsContext = ResolveContext & {
+  detectBackticks: boolean;
+};
+
+export function findRefs(text: string, ctx: FindRefsContext): ResolvedRef[] {
+  const out: ResolvedRef[] = [];
+  for (const m of parseRefs(text, { detectBackticks: ctx.detectBackticks })) {
+    const abs = resolveRefPath(m.raw, ctx);
+    if (abs !== null) out.push({ ...m, absolutePath: abs });
+  }
+  return out;
+}
