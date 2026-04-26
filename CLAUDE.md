@@ -64,6 +64,12 @@ Then add a typed wrapper in `src/lib/tauri.ts` that calls `invoke()`. Keep Rust 
 
 - Solo project on `main` for now — direct commits are fine; no PR workflow yet.
 - Commit messages follow conventional-commits style (`feat:`, `fix:`, `chore:`, optionally with a scope like `fix(editor):`). Keep the subject ≤ 72 chars; multi-paragraph body for non-trivial changes.
+- A husky `commit-msg` hook runs commitlint on every local commit, so non-conforming messages are rejected before they reach GitHub. CI also runs commitlint on PRs as a backstop. The hook is set up automatically by `pnpm install` (via the `prepare` script) — on a fresh clone, run `pnpm install` once before committing or the hook will silently no-op.
+
+## Releases
+
+- A single workflow at `.github/workflows/release-please.yml` drives the whole release. Job 1 (`release-please`) watches `main` and opens a rolling release PR assembled from conventional commits. Merging the PR bumps versions across `package.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json`, writes `CHANGELOG.md`, tags `v<x.y.z>`, and creates a GitHub release. Job 2 (`build`) runs in the same workflow run when a release is created, builds macOS universal + Windows bundles via `tauri-action`, and attaches them to the release using `tagName`.
+- Because both jobs live in the same workflow run, no PAT is needed — the "`GITHUB_TOKEN` doesn't trigger downstream workflows" caveat doesn't apply here.
 
 ## Out of scope for v1
 
